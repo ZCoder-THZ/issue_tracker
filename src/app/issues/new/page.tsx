@@ -1,6 +1,8 @@
 'use client'
 import { Button } from "@/components/ui/button";
-import SimpleMDE from "react-simplemde-editor";
+import dynamic from "next/dynamic";
+// import SimpleMDE from "react-simplemde-editor";
+const SimpleMDE = dynamic(() => import("react-simplemde-editor"), { ssr: false });
 import "easymde/dist/easymde.min.css";
 import {  useState } from "react";
 import axios from 'axios';
@@ -9,6 +11,7 @@ import { useQueryClient, useMutation, useQuery } from "@tanstack/react-query";
 import {zodResolver} from '@hookform/resolvers/zod'
 import ErrorMessage from "@/components/ErrorMessage";
 import Spinner from "@/components/Spinner";
+import issueActions from "../issueActions";
 import {
   Card,
   CardContent,
@@ -17,7 +20,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
  
-
+import ReactMarkdown from 'react-markdown';
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { createIssueSchema } from "@/app/validationSchemas";
@@ -132,7 +135,11 @@ export default function Dashboard() {
                   <Card key={issue.id} className="overflow-hidden w-98" x-chunk="dashboard-07-chunk-3">
                     <CardHeader>
                       <CardTitle>{issue.title}</CardTitle>
-                      <CardDescription>{issue.description}</CardDescription>
+                      <CardDescription>
+                        <ReactMarkdown>
+                        {issue.description}
+                        </ReactMarkdown>
+                       </CardDescription>
                     </CardHeader>
                     <CardContent>
                       <Button size="sm"  variant="destructive" onClick={() => deleteMutation.mutate(issue.id)}>

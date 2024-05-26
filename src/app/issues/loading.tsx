@@ -1,10 +1,9 @@
 import React from 'react'
 import Link from 'next/link'
-import { Button } from '@radix-ui/themes'
-import prisma from '../../../prisma/client'
-import { Badge } from "@/components/ui/badge"
-import IssueBadge from '@/components/Status'
+
 import delay from 'delay'
+import Skeleton from 'react-loading-skeleton'
+import 'react-loading-skeleton/dist/skeleton.css'
 import IssueActions from './issueActions'
 import {
   Table,
@@ -16,12 +15,14 @@ import {
   TableRow,
 } from "@/components/ui/table"
 
-async function IssuesPage() {
-  const issues=await  prisma.issue.findMany();
-  await delay(2000)
+ function IssuesLoading() {
+
+  const issues=[1,2,3,4,5];
+   delay(2000)
   return (
     <div className='container mx-auto p-4'>
-      <IssueActions/>
+        <IssueActions/>
+
     <div className="overflow-x-auto">
       <Table className="min-w-full max-w-4xl mx-auto bg-white shadow-md rounded-lg">
         <TableCaption className="text-left p-2">A list of your recent invoices.</TableCaption>
@@ -35,16 +36,19 @@ async function IssuesPage() {
         <TableBody>
            {
               issues?.map(issue=>
-                <TableRow key={issue.id} className="border-b">
+                <TableRow key={issue} className="border-b">
                 <TableCell className="font-medium p-2">
-                  <Link href={`/issues/${issue.id}`}>{issue.title}</Link>
+                    <Skeleton/>
                 </TableCell>
                 <TableCell className="p-2">
+                <Skeleton/>
                  
-                  <IssueBadge status={issue.status}/>
-                 
+                  
                 </TableCell>
-                <TableCell className="p-2">{issue.createdAt.toDateString()}</TableCell>
+                <TableCell className="p-2">
+                <Skeleton/>
+
+                </TableCell>
                
               </TableRow>
               )
@@ -59,4 +63,4 @@ async function IssuesPage() {
   )
 }
 
-export default IssuesPage
+export default IssuesLoading
