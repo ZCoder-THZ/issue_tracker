@@ -1,0 +1,24 @@
+version: '3.8'
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: node_app_container
+    volumes:
+      - .:/app
+      - /app/node_modules
+    ports:
+      - "3000:3000"
+    environment:
+      NODE_ENV: development
+      DATABASE_URL: mysql://root:secret@mysql_container:3306/ssscia
+    command: ["npm", "run", "dev"]
+    restart: unless-stopped
+    networks:
+      - docker_net #add network
+
+networks:
+  docker_net:
+    external: true
