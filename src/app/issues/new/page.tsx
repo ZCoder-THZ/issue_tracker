@@ -5,6 +5,7 @@ import axios from 'axios';
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { toast } from "react-toastify";
+import dynamic from "next/dynamic";
 import {
   Card,
   CardContent,
@@ -14,6 +15,10 @@ import {
 } from "@/components/ui/card";
 import ReactMarkdown from 'react-markdown';
 import { useRouter } from "next/navigation";
+
+const IssueForm= dynamic(() => import("../IssueForm"), {
+  ssr: false
+})
 
 export default function Dashboard() {
   const router = useRouter();
@@ -27,7 +32,7 @@ export default function Dashboard() {
     mutationFn: (id) => axios.delete(`/api/issues/${id}`),
     onSuccess: () => {
       queryClient.invalidateQueries(['issues']);
-      toast.success("Submit");
+      toast.error('deleted success')
     },
   });
 
@@ -41,7 +46,7 @@ export default function Dashboard() {
           <div className="mx-auto grid max-w-[59rem] flex-1 auto-rows-max gap-4">
             <div className="grid gap-4 md:grid-cols-[1fr_250px] lg:grid-cols-4 lg:gap-2">
               <div className="lg:col-span-4">
-                <IssueFormComponent />
+                <IssueForm />
               </div>
               <div className="lg:col-span-4 space-y-4">
                 {issues?.slice().reverse().map((issue) => (

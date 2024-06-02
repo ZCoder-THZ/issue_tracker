@@ -2,14 +2,18 @@
 import React from 'react'
 import QueryclientProvider from './QueryClientProvider'
 import ToastProvider from './toastProvider'
+import AuthProvider from './AuthProvider'
 function Provider({children}:any) {
   return (
-    <div>
+ 
+    <AuthProvider>
       <QueryclientProvider>
-        {/* <ToastProvider/> */}
+      
         {children}
       </QueryclientProvider>
-    </div>
+
+    </AuthProvider>
+  
   )
 }
 
