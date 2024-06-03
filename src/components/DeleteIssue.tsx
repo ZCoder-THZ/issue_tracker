@@ -19,7 +19,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import axios from 'axios';
 
 function DeleteIssue({ issueId }: { issueId: number }) {
-    const router = useRouter();
+  const router = useRouter();
   const [isClient, setIsClient] = useState(false);
   const queryClient = useQueryClient();
 
@@ -31,11 +31,12 @@ function DeleteIssue({ issueId }: { issueId: number }) {
     mutationFn: (id) => axios.delete(`/api/issues/${id}`),
     onSuccess: () => {
       queryClient.invalidateQueries(['issues']);
-      router.refresh()
+      router.refresh();
       toast.success('Issue deleted successfully');
     },
-    onError: () => {
+    onError: (error) => {
       toast.error('Failed to delete issue');
+      console.log(error);
     },
   });
 
@@ -50,7 +51,9 @@ function DeleteIssue({ issueId }: { issueId: number }) {
   return (
     <AlertDialog>
       <AlertDialogTrigger asChild>
-        <Button color="crimson" variant="soft">Delete</Button>
+        <Button color="crimson" variant="soft">
+          Delete
+        </Button>
       </AlertDialogTrigger>
       <AlertDialogContent>
         <AlertDialogHeader>

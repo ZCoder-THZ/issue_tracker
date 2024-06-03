@@ -8,7 +8,7 @@ import { useSession } from 'next-auth/react';
 import classnames from 'classnames';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import Skeleton from 'react-loading-skeleton';
-
+import DarkMode from '@/components/DarkMode';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -131,6 +131,7 @@ export default function Dashboard() {
           ) : (
             <Link href="/api/auth/signin">Login</Link>
           )}
+          <DarkMode />
         </div>
       </header>
     </div>

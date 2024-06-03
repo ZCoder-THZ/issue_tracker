@@ -1,6 +1,7 @@
 'use client';
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
+import { toast } from 'react-toastify';
 // app/dashboard/[id]/page.tsx
 import {
   Card,
@@ -21,7 +22,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-
+import { Button } from '@radix-ui/themes';
 function SelectAction({ issue }: { issue: any }) {
   const router = useRouter();
   const [selectedUserId, setSelectedUserId] = useState(null); // State to manage the selected user ID
@@ -36,6 +37,7 @@ function SelectAction({ issue }: { issue: any }) {
     },
     onSuccess: (resData) => {
       console.log(resData);
+      toast.success('Assigned  successfully');
       router.refresh();
     },
     onError: (error) => {
@@ -56,7 +58,7 @@ function SelectAction({ issue }: { issue: any }) {
   };
 
   return (
-    <Card x-chunk="dashboard-07-chunk-3">
+    <Card x-chunk="dashboard-07-chunk-3 ">
       <CardHeader>
         <CardTitle>Assign Users</CardTitle>
       </CardHeader>
@@ -77,7 +79,7 @@ function SelectAction({ issue }: { issue: any }) {
               </SelectContent>
             </Select>
           </div>
-          <button onClick={handleSubmit}>Submit</button>{' '}
+          <Button onClick={handleSubmit}>Submit</Button>{' '}
           {/* Add a button to trigger the mutation */}
         </div>
       </CardContent>
