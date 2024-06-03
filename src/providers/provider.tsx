@@ -1,20 +1,24 @@
-'use client'
-import React from 'react'
-import QueryclientProvider from './QueryClientProvider'
-import ToastProvider from './toastProvider'
-import AuthProvider from './AuthProvider'
-function Provider({children}:any) {
+'use client';
+import React from 'react';
+import QueryclientProvider from './QueryClientProvider';
+import ToastProvider from './toastProvider';
+import AuthProvider from './AuthProvider';
+import { ThemeProvider } from './ThemeProvider';
+function Provider({ children }: any) {
   return (
- 
     <AuthProvider>
       <QueryclientProvider>
-      
-        {children}
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="system"
+          enableSystem
+          disableTransitionOnChange
+        >
+          {children}
+        </ThemeProvider>
       </QueryclientProvider>
-
     </AuthProvider>
-  
-  )
+  );
 }
 
-export default Provider
+export default Provider;
