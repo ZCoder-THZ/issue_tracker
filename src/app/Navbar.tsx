@@ -28,6 +28,10 @@ const links = [
     name: 'Issues',
     href: '/issues',
   },
+  {
+    name: 'Devs',
+    href: '/devs',
+  },
 ];
 
 export default function Dashboard() {
@@ -36,7 +40,7 @@ export default function Dashboard() {
 
   return (
     <div className="border-b">
-      <header className="sticky top-0 flex h-16 items-center gap-4 bg-background px-10 md:px-10 mx-auto w-4/5">
+      <header className="sticky top-0 flex h-16 items-center gap-4  px-10 md:px-10 mx-auto w-4/5">
         <nav className="hidden flex-col gap-6 text-lg font-medium md:flex md:flex-row md:items-center md:gap-5 md:text-sm lg:gap-6">
           <Link
             href="#"

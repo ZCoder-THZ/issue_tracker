@@ -28,7 +28,7 @@ function SelectAction({ issue }: { issue: any }) {
   const [selectedUserId, setSelectedUserId] = useState(null); // State to manage the selected user ID
   const { data, error, isLoading } = useQuery({
     queryKey: ['users'],
-    queryFn: () => axios.get('/api/users').then((res) => res.data.users),
+    queryFn: () => axios.get('/api/devs').then((res) => res.data.users),
   });
 
   const mutation = useMutation({

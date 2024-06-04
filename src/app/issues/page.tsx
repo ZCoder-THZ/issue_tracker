@@ -2,9 +2,7 @@ import React, { useState } from 'react';
 import Link from 'next/link';
 import { Button } from '@radix-ui/themes';
 import prisma from '../../../prisma/client';
-
 import IssueBadge from '@/components/Status';
-import delay from 'delay';
 import IssueActions from './issueActions';
 import DeleteIssue from '@/components/DeleteIssue';
 import { getServerSession } from 'next-auth';
@@ -34,7 +32,6 @@ export default async function IssuesPage({ searchParams }: any) {
   const pageSize = parseInt(searchParams.pageSize) || 10;
   const searchQuery = searchParams.search || '';
 
-  await delay(1000);
   const headers = [
     {
       label: 'Issue',
@@ -111,7 +108,6 @@ export default async function IssuesPage({ searchParams }: any) {
           <FilterIssue />
         </div>
       </div>
-      <h1>status {status}</h1>
       <div className="overflow-x-auto">
         <Table className="min-w-full max-w-3xl mx-auto bg-white shadow-md rounded-lg">
           <TableCaption className="text-left p-2">
