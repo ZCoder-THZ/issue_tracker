@@ -2,7 +2,7 @@
 'use client';
 import { Button } from '@/components/ui/button';
 import { toast } from 'react-toastify';
-import dynamic from 'next/dynamic';
+
 import 'easymde/dist/easymde.min.css';
 import { useState, useEffect } from 'react';
 import { useForm, Controller } from 'react-hook-form';
@@ -13,7 +13,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useRouter } from 'next/navigation';
 import SimpleMDEEditor from 'react-simplemde-editor';
 import { useSession } from 'next-auth/react';
-import SelectAction from './SelectAction';
+
 import {
   Card,
   CardContent,
@@ -78,7 +78,6 @@ const IssueFormComponent: React.FC<IssueFormComponentProps> = ({ issue }) => {
       }
     },
     onSuccess: () => {
-      router.refresh();
       queryClient.invalidateQueries(['issues']);
 
       setLoading(false);
@@ -88,6 +87,7 @@ const IssueFormComponent: React.FC<IssueFormComponentProps> = ({ issue }) => {
       } else {
         toast.success('Issue created successfully');
       }
+      router.refresh();
     },
     onError: (error) => {
       console.log(error.response.message);

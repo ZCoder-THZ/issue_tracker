@@ -1,29 +1,33 @@
 // Dashboard.tsx
-'use client'
-import IssueFormComponent from "../IssueForm";
+'use client';
+import IssueFormComponent from '../IssueForm';
 import axios from 'axios';
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Button } from "@/components/ui/button";
-import { toast } from "react-toastify";
-import dynamic from "next/dynamic";
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { Button } from '@/components/ui/button';
+import { toast } from 'react-toastify';
+import dynamic from 'next/dynamic';
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card";
+} from '@/components/ui/card';
 import ReactMarkdown from 'react-markdown';
-import { useRouter } from "next/navigation";
+import { useRouter } from 'next/navigation';
 
-const IssueForm= dynamic(() => import("../IssueForm"), {
-  ssr: false
-})
+const IssueForm = dynamic(() => import('../IssueForm'), {
+  ssr: false,
+});
 
 export default function Dashboard() {
   const router = useRouter();
   const queryClient = useQueryClient();
-  const { data: issues, isLoading: isIssuesLoading, error } = useQuery({
+  const {
+    data: issues,
+    isLoading: isIssuesLoading,
+    error,
+  } = useQuery({
     queryKey: ['issues'],
     queryFn: () => axios.get('/api/issues').then((res) => res.data.issues),
   });
@@ -32,7 +36,8 @@ export default function Dashboard() {
     mutationFn: (id) => axios.delete(`/api/issues/${id}`),
     onSuccess: () => {
       queryClient.invalidateQueries(['issues']);
-      toast.error('deleted success')
+      toast.error('deleted success');
+      router.refresh();
     },
   });
 
@@ -49,21 +54,28 @@ export default function Dashboard() {
                 <IssueForm />
               </div>
               <div className="lg:col-span-4 space-y-4">
-                {issues?.slice().reverse().map((issue) => (
-                  <Card key={issue.id} className="overflow-hidden w-98">
-                    <CardHeader>
-                      <CardTitle>{issue.title}</CardTitle>
-                      <CardDescription>
-                        <ReactMarkdown>{issue.description}</ReactMarkdown>
-                      </CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                      <Button size="sm" variant="destructive" onClick={() => deleteMutation.mutate(issue.id)}>
-                        Delete Issue
-                      </Button>
-                    </CardContent>
-                  </Card>
-                ))}
+                {issues
+                  ?.slice()
+                  .reverse()
+                  .map((issue) => (
+                    <Card key={issue.id} className="overflow-hidden w-98">
+                      <CardHeader>
+                        <CardTitle>{issue.title}</CardTitle>
+                        <CardDescription>
+                          <ReactMarkdown>{issue.description}</ReactMarkdown>
+                        </CardDescription>
+                      </CardHeader>
+                      <CardContent>
+                        <Button
+                          size="sm"
+                          variant="destructive"
+                          onClick={() => deleteMutation.mutate(issue.id)}
+                        >
+                          Delete Issue
+                        </Button>
+                      </CardContent>
+                    </Card>
+                  ))}
               </div>
             </div>
           </div>

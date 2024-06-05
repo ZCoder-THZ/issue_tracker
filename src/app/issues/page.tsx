@@ -61,6 +61,7 @@ export default async function IssuesPage({ searchParams }: any) {
   const queryOptions: any = {
     include: {
       user: true,
+      assignedToUser: true,
     },
     orderBy: {},
     skip: (page - 1) * pageSize,
@@ -96,6 +97,8 @@ export default async function IssuesPage({ searchParams }: any) {
   const totalPages = Math.ceil(totalIssues / pageSize);
   const session = await getServerSession(AuthOption);
 
+  console.log(issues);
+
   const getNextSortOrder = (currentOrder) =>
     currentOrder === 'asc' ? 'desc' : 'asc';
 
@@ -109,12 +112,12 @@ export default async function IssuesPage({ searchParams }: any) {
         </div>
       </div>
       <div className="overflow-x-auto">
-        <Table className="min-w-full max-w-3xl mx-auto bg-white shadow-md rounded-lg">
+        <Table className="min-w-full max-w-3xl mx-auto bg-white dark:bg-gray-800 shadow-md rounded-lg">
           <TableCaption className="text-left p-2">
             A list of your recent invoices.
           </TableCaption>
           <TableHeader>
-            <TableRow className="bg-gray-200">
+            <TableRow className="">
               {headers.map(({ label, column, icon }) => (
                 <TableHead key={column} className="p-2">
                   <Link
@@ -141,10 +144,12 @@ export default async function IssuesPage({ searchParams }: any) {
                 </TableCell>
 
                 <TableCell className="font-medium p-2">
-                  <Link href={`/issues/${issue.id}`}>{issue.user?.name}</Link>
+                  <Link href={`/devs/${issue.userId}`}>
+                    {issue.assignedToUser?.name}
+                  </Link>
                 </TableCell>
                 <TableCell className="font-medium p-2">
-                  <Link href={`/devs/${issue.userId}`}>{issue.user.name}</Link>
+                  <Link href={`/issues/${issue.id}`}>{issue.user?.name}</Link>
                 </TableCell>
                 <TableCell className="p-2">
                   {new Date(issue.createdAt).toDateString()}
