@@ -42,7 +42,5 @@ jobs:
           NEXTAUTH_SECRET: ${{ secrets.NEXTAUTH_SECRET }}
           GOOGLE_CLIENT_ID: ${{ secrets.GOOGLE_CLIENT_ID }}
           GOOGLE_CLIENT_SECRET: ${{ secrets.GOOGLE_CLIENT_SECRET }}
-      - name: Save PM2 process list and environment
-        run: |
-          pm2 save
-          pm2 startup
+      - name: Save PM2 process list
+        run: pm2 save
