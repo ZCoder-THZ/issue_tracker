@@ -44,6 +44,7 @@ model User {
   email         String?   @unique
   emailVerified DateTime? @map("email_verified")
   image         String?
+  password      String?
   role          Int       @default(0) @db.TinyInt
   accounts      Account[]
   sessions      Session[]

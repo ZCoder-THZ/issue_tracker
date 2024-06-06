@@ -105,7 +105,8 @@ export default async function IssuesPage({ searchParams }: any) {
   return (
     <div className="container mx-auto p-4">
       <div className="flex justify-between items-center w-full">
-        <IssueActions />
+        <div>{session ? <IssueActions /> : null}</div>
+
         <div className="flex space-x-2">
           <SearchInput />
           <FilterIssue />

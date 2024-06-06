@@ -1,0 +1,30 @@
+/* app/auth/signin/signin.module.css */
+.container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+}
+
+.googleButton {
+  padding: 10px 20px;
+  background-color: #4285f4;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 16px;
+}
+
+.googleButton:hover {
+  background-color: #357ae8;
+}
+
+.spinnerContainer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+}

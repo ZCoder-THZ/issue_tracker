@@ -37,6 +37,8 @@ import {
 
 import { columns } from './columns';
 
+export const dynamic = 'force-dynamic';
+
 export default function DataTableDemo() {
   const {
     data: users,

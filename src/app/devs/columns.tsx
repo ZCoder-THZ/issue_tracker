@@ -56,13 +56,17 @@ export const columns: ColumnDef<Dev>[] = [
     accessorKey: 'image',
     header: 'User Image',
     cell: ({ row }) => (
-      <Image
-        src={row.getValue('image')}
-        width={50}
-        height={50}
-        className="rounded-full"
-        alt="User Image"
-      />
+      <div className="h-10 w-10 rounded-full">
+        {row.getValue('image') ? (
+          <Image
+            src={row.getValue('image')}
+            alt="Avatar"
+            width={40}
+            height={40}
+            className="rounded-full"
+          />
+        ) : null}
+      </div>
     ),
   },
 
