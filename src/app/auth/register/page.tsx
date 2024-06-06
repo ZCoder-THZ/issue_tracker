@@ -1,5 +1,7 @@
 'use client';
+import { useState } from 'react';
 import Link from 'next/link';
+import { signIn } from 'next-auth/react';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -14,12 +16,16 @@ import { useForm, SubmitHandler } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import signUpSchema from './signUpSchema'; // adjust the path accordingly
 import { z } from 'zod';
+import Spinner from '@/components/Spinner';
 import axios from 'axios';
 
 // Define a type for the form data based on the Zod schema
 type SignUpFormData = z.infer<typeof signUpSchema>;
 
 export default function LoginForm() {
+  const [error, setError] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+
   const {
     register,
     handleSubmit,
@@ -29,13 +35,36 @@ export default function LoginForm() {
   });
 
   const onSubmit: SubmitHandler<SignUpFormData> = (data) => {
+    setIsLoading(true);
     axios
       .post('/api/register', data)
-      .then((response) => {
+      .then(async (response) => {
         console.log(response.data);
+
+        const { user, success, message } = response.data;
+
+        if (success) {
+          const signInResponse = await signIn('credentials', {
+            redirect: false,
+            email: data.email,
+            password: data.password,
+          });
+
+          if (signInResponse?.ok) {
+            window.location.href = '/'; // Redirect to dashboard on successful login
+          } else {
+            setError('Failed to sign in after registration');
+            setIsLoading(false);
+          }
+        } else {
+          setError(message);
+          setIsLoading(false);
+        }
       })
       .catch((error) => {
-        console.error(error);
+        console.error(error.message);
+        setError(error.message);
+        setIsLoading(false);
       });
   };
 
@@ -87,14 +116,15 @@ export default function LoginForm() {
                 <p className="text-red-500">{errors.confirmPassword.message}</p>
               )}
             </div>
+            {error && <p className="text-red-500">{error}</p>}
             <Button type="submit" className="w-full">
-              Create an account
+              {isLoading ? <Spinner /> : 'Create an account'}
             </Button>
           </div>
         </form>
         <div className="mt-4 text-center text-sm">
           Already have an account?{' '}
-          <Link href="#" className="underline">
+          <Link href="/auth/signin" className="underline">
             Sign in
           </Link>
         </div>

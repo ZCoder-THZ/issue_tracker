@@ -63,7 +63,9 @@ export default function Component() {
             <div className="grid gap-4">
               <form onSubmit={loginHandler}>
                 <div className="grid gap-2">
-                  <Label htmlFor="email">Email</Label>
+                  <Label className="mt-3" htmlFor="email">
+                    Email
+                  </Label>
                   <Input
                     name="email"
                     id="email"
@@ -71,19 +73,21 @@ export default function Component() {
                     placeholder="m@example.com"
                   />
                 </div>
-                <div className="grid gap-2">
+                <div className="grid gap-2 mb-3">
                   <div className="flex items-center">
-                    <Label htmlFor="password">Password</Label>
-                    <Link
-                      href="#"
-                      className="ml-auto inline-block text-sm underline"
-                      prefetch={false}
-                    >
-                      Forgot your password?
-                    </Link>
+                    <Label className="mt-3" htmlFor="password">
+                      Password
+                    </Label>
                   </div>
                   <Input id="password" type="password" name="password" />
                 </div>
+                <Link
+                  href="#"
+                  className="ml-auto inline-block text-sm underline"
+                  prefetch={false}
+                >
+                  Forgot your password?
+                </Link>
                 <Button type="submit" className="w-full">
                   Login
                 </Button>

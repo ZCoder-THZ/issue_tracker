@@ -8,16 +8,18 @@ import Qr from './Qr';
 const ProfileCard = ({ user }) => {
   return (
     <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg overflow-hidden flex flex-col items-center p-8 w-80">
-      <Image
-        width={150}
-        height={150}
-        className="w-40 h-40 rounded-full"
-        src={user.image}
-        alt={user.name}
-      />
+      {user.image && (
+        <Image
+          width={150}
+          height={150}
+          className="w-40 h-40 rounded-full"
+          src={user.image}
+          alt={user.name}
+        />
+      )}
       <div className="mt-6 text-center">
-        <h3 className="text-2xl font-semibold">{user.name}</h3>
-        <p className="text-gray-600">{user.email}</p>
+        <h3 className="text-2xl font-semibold">Username :{user.name}</h3>
+        <p className="text-gray-600">email :{user.email}</p>
       </div>
       <Qr />
       <button className="mt-6 px-6 py-3 bg-blue-500 text-white rounded hover:bg-blue-600">

@@ -47,6 +47,8 @@ export default function DataTableDemo() {
   } = useQuery({
     queryKey: ['devs'],
     queryFn: () => axios.get('/api/devs').then((res) => res.data.users),
+    staleTime: 0, // Data is considered stale immediately
+    cacheTime: 0, // Data is not cachedstaleTime: 0,
   });
   console.log(users);
   const [sorting, setSorting] = React.useState<SortingState>([]);
