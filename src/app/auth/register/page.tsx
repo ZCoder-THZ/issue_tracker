@@ -16,6 +16,8 @@ import { useForm, SubmitHandler } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import signUpSchema from './signUpSchema'; // adjust the path accordingly
 import { z } from 'zod';
+import { revalidatePath } from 'next/cache';
+
 import Spinner from '@/components/Spinner';
 import axios from 'axios';
 

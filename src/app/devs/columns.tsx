@@ -21,7 +21,8 @@ export type Dev = {
   id: string;
   name: string;
   email: string;
-  sfasdfasd1asd;
+  image: string;
+  role: string;
 };
 
 export const columns: ColumnDef<Dev>[] = [
