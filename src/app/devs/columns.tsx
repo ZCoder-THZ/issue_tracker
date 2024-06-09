@@ -2,11 +2,11 @@
 
 import * as React from 'react';
 import { ColumnDef } from '@tanstack/react-table';
-import { ArrowUpDown, ChevronDown, MoreHorizontal } from 'lucide-react';
+import { ArrowUpDown, MoreHorizontal } from 'lucide-react';
 import Image from 'next/image';
 import { Button } from '@/components/ui/button';
-// import { Checkbox } from '@/components/ui/checkbox';
 import { toast } from 'react-toastify';
+import { getRole } from '@/lib/utils';
 import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
@@ -28,9 +28,36 @@ export type Dev = {
 export const columns: ColumnDef<Dev>[] = [
   {
     accessorKey: 'id',
-    header: 'Id',
+    header: ({ column }) => {
+      return (
+        <Button
+          variant="ghost"
+          onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
+        >
+          ID
+          <ArrowUpDown className="ml-2 h-4 w-4" />
+        </Button>
+      );
+    },
     cell: ({ row }) => (
       <Link href={`/devs/${row.getValue('id')}`}>{row.getValue('id')}</Link>
+    ),
+  },
+  {
+    accessorKey: 'name',
+    header: ({ column }) => {
+      return (
+        <Button
+          variant="ghost"
+          onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
+        >
+          Name
+          <ArrowUpDown className="ml-2 h-4 w-4" />
+        </Button>
+      );
+    },
+    cell: ({ row }) => (
+      <Link href={`/devs/${row.getValue('id')}`}>{row.getValue('name')}</Link>
     ),
   },
   {
@@ -50,8 +77,21 @@ export const columns: ColumnDef<Dev>[] = [
   },
   {
     accessorKey: 'role',
-    header: 'Role',
-    cell: ({ row }) => <div className="capitalize">{row.getValue('role')}</div>,
+    accessorFn: (row) => row.role,
+    header: ({ column }) => {
+      return (
+        <Button
+          variant="ghost"
+          onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
+        >
+          Role
+          <ArrowUpDown className="ml-2 h-4 w-4" />
+        </Button>
+      );
+    },
+    cell: ({ row }) => (
+      <div className="capitalize">{getRole(row.getValue('role'))}</div>
+    ),
   },
   {
     accessorKey: 'image',

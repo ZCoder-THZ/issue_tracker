@@ -158,7 +158,7 @@ export default async function IssuesPage({ searchParams }: any) {
                 <TableCell className="p-2 space-x-2">
                   {session ? (
                     <div>
-                      {issue.userId === session?.user?.id && (
+                      {session.user.role == 2 && (
                         <div className="space-x-2">
                           <DeleteIssue issueId={issue.id} />
 

@@ -78,7 +78,7 @@ export default async function Dashboard({ params }: DashboardProps) {
         <div className="grid auto-rows-max items-start gap-4 lg:gap-8">
           <Card>
             <CardContent className="p-4">
-              <div>
+              <div className="space-y-4">
                 <h3 className="text-lg font-semibold text-gray-800">
                   Assigned person
                 </h3>

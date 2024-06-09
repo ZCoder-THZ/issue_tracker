@@ -85,7 +85,12 @@ function SelectAction({ issue }: { issue: any }) {
         <div className="grid gap-6">
           <div className="grid gap-3">
             <Label htmlFor="users">Users</Label>
-            <Select onValueChange={handleUserSelect}>
+            <Select
+              onValueChange={handleUserSelect}
+              {...(issue?.assignedToUserId && {
+                defaultValue: issue.assignedToUserId,
+              })}
+            >
               <SelectTrigger id="users" aria-label="Select user">
                 <SelectValue placeholder="Select user" />
               </SelectTrigger>
@@ -104,7 +109,10 @@ function SelectAction({ issue }: { issue: any }) {
         <div className="grid gap-6">
           <div className="grid gap-3">
             <Label htmlFor="status">Status</Label>
-            <Select onValueChange={handleStatusSelect}>
+            <Select
+              onValueChange={handleStatusSelect}
+              defaultValue={issue?.status}
+            >
               <SelectTrigger id="status" aria-label="Select status">
                 <SelectValue placeholder="Select status" />
               </SelectTrigger>
