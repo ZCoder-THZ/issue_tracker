@@ -123,7 +123,9 @@ export default function Dashboard() {
                 <DropdownMenuContent align="end">
                   <DropdownMenuLabel>{session?.user?.name}</DropdownMenuLabel>
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem>Settings</DropdownMenuItem>
+                  <DropdownMenuItem>
+                    <Link href="/profile">Edit Profile</Link>
+                  </DropdownMenuItem>
                   <DropdownMenuItem>Support</DropdownMenuItem>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem>
