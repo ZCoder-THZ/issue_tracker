@@ -8,6 +8,7 @@ import { getServerSession } from 'next-auth';
 import { AuthOption } from '../auth/authOption';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import Link from 'next/link';
 
 interface User {
   id: string;
@@ -33,12 +34,14 @@ const ProfileCard = ({ user }: { user: User }) => {
         <h3 className="text-2xl font-semibold">Username :{user.name}</h3>
         <p className="text-gray-600">email :{user.email}</p>
         <Label htmlFor="picture">Picture</Label>
-        <Input id="picture" type="file" className="mb-3" />
       </div>
       <Qr />
-      <button className="mt-6 px-6 py-3 bg-blue-500 text-white rounded hover:bg-blue-600">
+      <Link
+        href="/profile/edit"
+        className="mt-6 px-6 py-3 bg-blue-500 text-white rounded hover:bg-blue-600"
+      >
         Edit
-      </button>
+      </Link>
     </div>
   );
 };

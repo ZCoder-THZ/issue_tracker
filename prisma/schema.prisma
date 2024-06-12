@@ -39,17 +39,17 @@ model Session {
 }
 
 model User {
-  id            String    @id @default(cuid())
-  name          String?
-  email         String?   @unique
-  emailVerified DateTime? @map("email_verified")
-  image         String?
-  password      String?
-  role          Int       @default(0) @db.TinyInt
-  accounts      Account[]
-  sessions      Session[]
-  issues        Issue[]   @relation("UserIssues") // This field establishes the relation from the user's side
-  assignedIssues Issue[]  @relation("UserAssignedIssues")
+  id             String    @id @default(cuid())
+  name           String?
+  email          String?   @unique
+  emailVerified  DateTime? @map("email_verified")
+  image          String?
+  role           Int       @default(0) @db.TinyInt
+  password       String?
+  accounts       Account[]
+  assignedIssues Issue[]   @relation("UserAssignedIssues")
+  issues         Issue[]   @relation("UserIssues")
+  sessions       Session[]
 
   @@map("users")
 }
@@ -64,23 +64,34 @@ model VerificationToken {
 }
 
 model Issue {
-  id          Int          @id @default(autoincrement())
-  title       String       @db.VarChar(255)
-  description String       @db.VarChar(255)
-  status      Issue_status @default(OPEN)
-  createdAt   DateTime     @default(now())
-  updatedAt   DateTime     @updatedAt
-  userId      String       // Foreign key field
-  user        User         @relation(fields: [userId], references: [id], name: "UserIssues") // Relation field
-  assignedToUserId String? @db.VarChar(255)
-  assignedToUser User?     @relation(fields: [assignedToUserId], references: [id], name: "UserAssignedIssues")
+  id               Int            @id @default(autoincrement())
+  title            String         @db.VarChar(255)
+  description      String         @db.VarChar(255)
+  status           IssueStatus    @default(OPEN)
+  priority         IssuePriority  @default(low)
+  assignedDate     DateTime?      // Optional field for the date the issue was assigned
+  deadlineDate     DateTime?      // Optional field for the deadline date
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @updatedAt
+  userId           String
+  assignedToUserId String?        @db.VarChar(255)
+  assignedToUser   User?          @relation("UserAssignedIssues", fields: [assignedToUserId], references: [id])
+  user             User           @relation("UserIssues", fields: [userId], references: [id])
 
   @@index([userId])
+  @@index([assignedToUserId], map: "issues_assignedToUserId_fkey")
   @@map("issues")
 }
 
-enum Issue_status {
+enum IssueStatus {
   OPEN
   IN_PROGRESS
   CLOSED
+}
+
+enum IssuePriority {
+  high
+  medium
+  low
+  lowest
 }

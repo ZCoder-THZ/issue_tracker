@@ -1,8 +1,6 @@
-// IssueForm.tsx
 'use client';
 import { Button } from '@/components/ui/button';
 import { toast } from 'react-toastify';
-
 import 'easymde/dist/easymde.min.css';
 import { useState, useEffect } from 'react';
 import { useForm, Controller } from 'react-hook-form';
@@ -13,7 +11,6 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useRouter } from 'next/navigation';
 import SimpleMDEEditor from 'react-simplemde-editor';
 import { useSession } from 'next-auth/react';
-
 import {
   Card,
   CardContent,
@@ -27,8 +24,6 @@ import { createIssueSchema } from '@/app/validationSchemas';
 import { z } from 'zod';
 import axios from 'axios';
 
-// const SimpleMDE = dynamic(() => import("react-simplemde-editor"), { ssr: false });
-
 type IssueForm = z.infer<typeof createIssueSchema>;
 
 interface IssueFormComponentProps {
@@ -36,11 +31,12 @@ interface IssueFormComponentProps {
     id: number;
     title: string;
     description: string;
+    priority: 'high' | 'medium' | 'low' | 'lowest';
   } | null;
 }
 
 const IssueFormComponent: React.FC<IssueFormComponentProps> = ({ issue }) => {
-  const { data: session, status } = useSession();
+  const { data: session } = useSession();
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const {
@@ -54,6 +50,7 @@ const IssueFormComponent: React.FC<IssueFormComponentProps> = ({ issue }) => {
     defaultValues: {
       title: issue?.title || '',
       description: issue?.description || '',
+      priority: issue?.priority || 'low',
     },
   });
 
@@ -61,6 +58,7 @@ const IssueFormComponent: React.FC<IssueFormComponentProps> = ({ issue }) => {
     if (issue) {
       setValue('title', issue.title);
       setValue('description', issue.description);
+      setValue('priority', issue.priority);
     }
   }, [issue, setValue]);
 
@@ -69,6 +67,7 @@ const IssueFormComponent: React.FC<IssueFormComponentProps> = ({ issue }) => {
     mutationFn: (issueData: {
       title: string;
       description: string;
+      priority: 'high' | 'medium' | 'low' | 'lowest';
       user_id: number;
     }) => {
       if (issue) {
@@ -79,14 +78,9 @@ const IssueFormComponent: React.FC<IssueFormComponentProps> = ({ issue }) => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries(['issues']);
-
       setLoading(false);
-      if (issue) {
-        toast.success('Issue updated successfully');
-        router.push('/issues');
-      } else {
-        toast.success('Issue created successfully');
-      }
+      toast.success(`Issue ${issue ? 'updated' : 'created'} successfully`);
+      router.push('/issues');
       router.refresh();
     },
     onError: (error) => {
@@ -95,15 +89,14 @@ const IssueFormComponent: React.FC<IssueFormComponentProps> = ({ issue }) => {
     },
   });
 
-  interface FormData {
-    title: string;
-    description: string;
-  }
-
-  const onSubmit = ({ title, description }: FormData) => {
+  const onSubmit = ({ title, description, priority }: IssueForm) => {
     setLoading(true);
-
-    mutation.mutate({ title, description, user_id: session?.user?.id });
+    mutation.mutate({
+      title,
+      description,
+      priority,
+      user_id: session?.user?.id,
+    });
   };
 
   return (
@@ -141,6 +134,22 @@ const IssueFormComponent: React.FC<IssueFormComponentProps> = ({ issue }) => {
                 />
                 {errors.description && (
                   <ErrorMessage>{errors.description.message}</ErrorMessage>
+                )}
+              </div>
+              <div>
+                <Label htmlFor="priority">Priority</Label>
+                <select
+                  id="priority"
+                  {...register('priority')}
+                  className="w-full mt-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring focus:ring-indigo-200 focus:border-indigo-300"
+                >
+                  <option value="high">High</option>
+                  <option value="medium">Medium</option>
+                  <option value="low">Low</option>
+                  <option value="lowest">Lowest</option>
+                </select>
+                {errors.priority && (
+                  <ErrorMessage>{errors.priority.message}</ErrorMessage>
                 )}
               </div>
               <div className="flex justify-end">

@@ -45,6 +45,11 @@ export default async function IssuesPage({ searchParams }: any) {
       icon: <RowSpacingIcon className="inline" />,
     },
     {
+      label: 'Priority',
+      column: 'priority',
+      icon: <RowSpacingIcon className="inline" />,
+    },
+    {
       label: 'Created By',
       column: 'user.name',
       icon: <RowSpacingIcon className="inline" />,
@@ -115,7 +120,7 @@ export default async function IssuesPage({ searchParams }: any) {
       <div className="overflow-x-auto">
         <Table className="min-w-full max-w-3xl mx-auto bg-white dark:bg-gray-800 shadow-md rounded-lg">
           <TableCaption className="text-left p-2">
-            A list of your recent invoices.
+            A list of your recent issues.
           </TableCaption>
           <TableHeader>
             <TableRow className="">
@@ -143,11 +148,13 @@ export default async function IssuesPage({ searchParams }: any) {
                 <TableCell className="p-2">
                   <IssueBadge status={issue.status} />
                 </TableCell>
-
                 <TableCell className="font-medium p-2">
-                  <Link href={`/devs/${issue.userId}`}>
+                  <Link href={`/devs/${issue.assignedToUserId}`}>
                     {issue.assignedToUser?.name}
                   </Link>
+                </TableCell>
+                <TableCell className="font-medium p-2">
+                  {issue.priority}
                 </TableCell>
                 <TableCell className="font-medium p-2">
                   <Link href={`/issues/${issue.id}`}>{issue.user?.name}</Link>

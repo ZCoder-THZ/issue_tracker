@@ -12,6 +12,7 @@ export const createIssueSchema = z.object({
     .max(255)
     .optional()
     .nullable(),
+  priority: z.enum(['high', 'medium', 'low', 'lowest']).optional(),
 });
 export const patchIssueSchema = z.object({
   title: z.string().min(1, 'Title is required.').max(255).optional(),
@@ -26,4 +27,5 @@ export const patchIssueSchema = z.object({
     .max(255)
     .optional()
     .nullable(),
+  priority: z.enum(['high', 'medium', 'low', 'lowest']).optional(),
 });

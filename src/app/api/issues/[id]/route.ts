@@ -1,11 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '../../../../../prisma/client';
 import { patchIssueSchema } from '@/app/validationSchemas';
+
 export async function DELETE(
   request: NextRequest,
   { params }: { params: { id: number } }
 ) {
-  // Log the entire request object to see what's being received
   try {
     const issue = await prisma.issue.delete({
       where: {
@@ -18,39 +18,41 @@ export async function DELETE(
     return NextResponse.json({ error }, { status: 400 });
   }
 }
+
 export async function PATCH(
   request: NextRequest,
   { params }: { params: { id: number } }
 ) {
-  // Log the entire request object to see what's being received
   try {
     const issue = await prisma.issue.findFirst({
       where: {
         id: Number(params.id),
       },
     });
+
     if (!issue) {
       return NextResponse.json({ error: 'Issue not found' }, { status: 404 });
     }
 
     const body = await request.json();
-    const validaton = patchIssueSchema.safeParse(body);
-    if (!validaton.success) {
-      return NextResponse.json(validaton.error.errors, { status: 400 });
+    console.log('Request Body:', body); // Add debug log for request body
+
+    const validation = patchIssueSchema.safeParse(body);
+    if (!validation.success) {
+      return NextResponse.json(validation.error.errors, { status: 400 });
     }
-    const { user_id, title, description, status } = body;
+
+    const { user_id, title, description, status, priority } = body;
 
     if (user_id) {
       const user = await prisma.user.findUnique({
         where: { id: user_id },
       });
-      if (!user)
+      if (!user) {
         return NextResponse.json({ error: 'Invalid user.' }, { status: 400 });
+      }
     }
-    // const updateData = {
-    //   title: validaton.data.title,
-    //   description: validaton.data.description,
-    // };
+
     const updatedIssue = await prisma.issue.update({
       where: { id: issue.id },
       data: {
@@ -58,25 +60,15 @@ export async function PATCH(
         description,
         assignedToUserId: user_id,
         status,
+        priority,
       },
     });
-    try {
-      const updatedIssue = await prisma.issue.update({
-        where: { id: issue.id },
-        data: {
-          title,
-          description,
-          assignedToUserId: user_id,
-          status,
-        },
-      });
-      return NextResponse.json({ updatedIssue });
-    } catch (error) {
-      return NextResponse.json({ error }, { status: 400 });
-    }
+
+    console.log('Updated Issue:', updatedIssue); // Add debug log for updated issue
 
     return NextResponse.json({ updatedIssue });
   } catch (error) {
+    console.error('Error:', error); // Add debug log for error
     return NextResponse.json({ error }, { status: 400 });
   }
 }

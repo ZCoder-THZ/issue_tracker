@@ -13,6 +13,7 @@ export async function POST(request: NextRequest) {
       title: validaton.data.title,
       description: validaton.data.description,
       userId: body.user_id,
+      priority: validaton.data.priority,
     },
   });
 
