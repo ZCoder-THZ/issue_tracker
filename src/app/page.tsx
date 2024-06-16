@@ -1,11 +1,11 @@
-import React from 'react'
-import Navbar from './Navbar'
+import dynamic from 'next/dynamic';
+const IssueChart = dynamic(() => import('./IssueChart'), { ssr: false });
 function page() {
   return (
-    <div>
-      Dashboard
+    <div className="container mx-auto p-4">
+      <IssueChart />
     </div>
-  )
+  );
 }
 
-export default page
+export default page;

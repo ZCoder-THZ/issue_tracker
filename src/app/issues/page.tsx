@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import Link from 'next/link';
 import { Button } from '@radix-ui/themes';
 import prisma from '../../../prisma/client';
@@ -25,12 +25,12 @@ import FilterIssue from './filterIssue';
 export const dynamic = 'force-dynamic';
 
 export default async function IssuesPage({ searchParams }: any) {
-  const status = searchParams.status || 'ALL';
-  const sortColumn = searchParams.sortColumn || 'createdAt';
-  const sortOrder = searchParams.sortOrder || 'asc';
-  const page = parseInt(searchParams.page) || 1;
-  const pageSize = parseInt(searchParams.pageSize) || 10;
-  const searchQuery = searchParams.search || '';
+  const status = searchParams?.status || 'ALL';
+  const sortColumn = searchParams?.sortColumn || 'createdAt';
+  const sortOrder = searchParams?.sortOrder || 'asc';
+  const page = parseInt(searchParams?.page) || 1;
+  const pageSize = parseInt(searchParams?.pageSize) || 10;
+  const searchQuery = searchParams?.search || '';
 
   const headers = [
     {
@@ -41,7 +41,7 @@ export default async function IssuesPage({ searchParams }: any) {
     { label: 'Status', column: 'status', icon: null },
     {
       label: 'Assigned To',
-      column: 'user.name',
+      column: 'assignedToUser.name',
       icon: <RowSpacingIcon className="inline" />,
     },
     {
@@ -63,7 +63,7 @@ export default async function IssuesPage({ searchParams }: any) {
 
   let issues = [];
 
-  const queryOptions: any = {
+  const queryOptions = {
     include: {
       user: true,
       assignedToUser: true,
@@ -102,19 +102,16 @@ export default async function IssuesPage({ searchParams }: any) {
   const totalPages = Math.ceil(totalIssues / pageSize);
   const session = await getServerSession(AuthOption);
 
-  console.log(issues);
-
-  const getNextSortOrder = (currentOrder) =>
+  const getNextSortOrder = (currentOrder: string) =>
     currentOrder === 'asc' ? 'desc' : 'asc';
 
   return (
     <div className="container mx-auto p-4">
       <div className="flex justify-between items-center w-full">
         <div>{session ? <IssueActions /> : null}</div>
-
         <div className="flex space-x-2">
-          <SearchInput />
-          <FilterIssue />
+          <SearchInput initialQuery={searchQuery} />
+          <FilterIssue initialStatus={status} />
         </div>
       </div>
       <div className="overflow-x-auto">
@@ -123,13 +120,13 @@ export default async function IssuesPage({ searchParams }: any) {
             A list of your recent issues.
           </TableCaption>
           <TableHeader>
-            <TableRow className="">
+            <TableRow>
               {headers.map(({ label, column, icon }) => (
                 <TableHead key={column} className="p-2">
                   <Link
                     href={`?status=${status}&sortColumn=${column}&sortOrder=${getNextSortOrder(
                       sortOrder
-                    )}&search=${searchQuery}`}
+                    )}&search=${searchQuery}&page=1`}
                   >
                     {label}
                     {icon}
@@ -163,22 +160,13 @@ export default async function IssuesPage({ searchParams }: any) {
                   {new Date(issue.createdAt).toDateString()}
                 </TableCell>
                 <TableCell className="p-2 space-x-2">
-                  {session ? (
-                    <div>
-                      {session.user.role == 2 && (
-                        <div className="space-x-2">
-                          <DeleteIssue issueId={issue.id} />
-
-                          <Button color="cyan" variant="soft">
-                            <Link href={`/issues/${issue.id}/update`}>
-                              Edit
-                            </Link>
-                          </Button>
-                        </div>
-                      )}
+                  {session && session.user.role === 2 && (
+                    <div className="space-x-2">
+                      <DeleteIssue issueId={issue.id} />
+                      <Button color="cyan" variant="soft">
+                        <Link href={`/issues/${issue.id}/update`}>Edit</Link>
+                      </Button>
                     </div>
-                  ) : (
-                    ''
                   )}
                 </TableCell>
               </TableRow>
