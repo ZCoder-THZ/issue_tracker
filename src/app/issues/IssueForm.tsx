@@ -11,6 +11,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useRouter } from 'next/navigation';
 import SimpleMDEEditor from 'react-simplemde-editor';
 import { useSession } from 'next-auth/react';
+
 import {
   Card,
   CardContent,
@@ -129,7 +130,11 @@ const IssueFormComponent: React.FC<IssueFormComponentProps> = ({ issue }) => {
                   name="description"
                   control={control}
                   render={({ field }) => (
-                    <SimpleMDEEditor id="description" {...field} />
+                    <SimpleMDEEditor
+                      id="description"
+                      {...field}
+                      className="dark:bg-black"
+                    />
                   )}
                 />
                 {errors.description && (

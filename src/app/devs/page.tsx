@@ -2,6 +2,9 @@
 
 import * as React from 'react';
 import axios from 'axios';
+import { useSession } from 'next-auth/react';
+import { useRouter } from 'next/navigation';
+
 import {
   ColumnDef,
   ColumnFiltersState,
@@ -14,9 +17,9 @@ import {
   getSortedRowModel,
   useReactTable,
 } from '@tanstack/react-table';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { ChevronDown } from 'lucide-react';
-
+import { toast } from 'react-toastify';
 import { Button } from '@/components/ui/button';
 
 import {
@@ -38,18 +41,19 @@ import {
 import {
   Select,
   SelectContent,
-  SelectGroup,
   SelectItem,
-  SelectLabel,
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
 
-import { columns } from './columns';
+import { ColumnsComponent } from './columns';
 
 export const dynamic = 'force-dynamic';
 
 export default function DataTableDemo() {
+  const { data: session, status } = useSession();
+  const queryClient = useQueryClient();
+  const router = useRouter();
   const {
     data: users,
     isLoading,
@@ -58,9 +62,34 @@ export default function DataTableDemo() {
     queryKey: ['devs'],
     queryFn: () => axios.get('/api/devs').then((res) => res.data.users),
     staleTime: 0, // Data is considered stale immediately
-    cacheTime: 0, // Data is not cachedstaleTime: 0,
+    cacheTime: 0, // Data is not cached
   });
-  console.log(users);
+
+  const updateRole = useMutation({
+    mutationFn: ({ id, role }: { id: string; role: string }) => {
+      return axios.patch('/api/devs', { id, role });
+    },
+    onSuccess: (resData) => {
+      queryClient.invalidateQueries(['devs']);
+
+      toast.success('Role updated successfully');
+      router.refresh();
+    },
+    onError: (error) => {
+      toast.error('Failed to update role');
+      console.error(error);
+    },
+  });
+
+  const handleRoleChange = async (id: string, role: string) => {
+    // const roleUpdate = await axios.patch('/api/devs', { id, role });
+    // router.refresh();
+    console.log(id, role);
+    updateRole.mutate({ id, role });
+    // Reload the page after success
+  };
+
+  const { columns } = ColumnsComponent({ handleRoleChange });
   const [sorting, setSorting] = React.useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
     []
@@ -71,7 +100,10 @@ export default function DataTableDemo() {
 
   const table = useReactTable({
     data: users || [],
-    columns,
+    columns:
+      session?.user?.role === 2
+        ? columns
+        : columns.filter((column) => column.id !== 'role_actions'),
     onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters,
     getCoreRowModel: getCoreRowModel(),
@@ -100,7 +132,7 @@ export default function DataTableDemo() {
           className="max-w-sm"
         />
 
-        <div className="flex ">
+        <div className="flex">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="outline" className="ml-auto">
@@ -130,7 +162,7 @@ export default function DataTableDemo() {
           <Select
             value={(table.getColumn('role')?.getFilterValue() as string) ?? '0'}
             onValueChange={(value) =>
-              table.getColumn('role')?.setFilterValue('1')
+              table.getColumn('role')?.setFilterValue(value)
             }
             className="max-w-sm"
           >
@@ -183,14 +215,19 @@ export default function DataTableDemo() {
                       key={row.id}
                       data-state={row.getIsSelected() && 'selected'}
                     >
-                      {row.getVisibleCells().map((cell) => (
-                        <TableCell key={cell.id}>
-                          {flexRender(
-                            cell.column.columnDef.cell,
-                            cell.getContext()
-                          )}
-                        </TableCell>
-                      ))}
+                      {row
+                        .getVisibleCells()
+                        .map((cell) =>
+                          session?.user?.role === 2 ||
+                          cell.column.id !== 'role_actions' ? (
+                            <TableCell key={cell.id}>
+                              {flexRender(
+                                cell.column.columnDef.cell,
+                                cell.getContext()
+                              )}
+                            </TableCell>
+                          ) : null
+                        )}
                     </TableRow>
                   ))
                 ) : (
@@ -209,10 +246,6 @@ export default function DataTableDemo() {
         </Table>
       </div>
       <div className="flex items-center justify-end space-x-2 py-4">
-        {/* <div className="flex-1 text-sm text-muted-foreground">
-          {table.getFilteredSelectedRowModel().rows.length} of{' '}
-          {table.getFilteredRowModel().rows.length} row(s) selected.
-        </div> */}
         <div className="space-x-2">
           <Button
             variant="outline"

@@ -1,11 +1,13 @@
 import React from 'react';
-import { Button } from '@radix-ui/themes';
+import { Button } from '@/components/ui/button';
 import Link from 'next/link';
-function IssueActions() {
+import { sessionAuth } from '@/lib/sessionAUth';
+async function IssueActions() {
+  const session = await sessionAuth();
   return (
     <div className="">
-      <Button className="">
-        <Link href="/issues/new">New Issue</Link>
+      <Button className="" className="mb-1 bg-blue-500 text-white">
+        {session ? <Link href="/issues/new">New Issue</Link> : 'Please Login'}
       </Button>
     </div>
   );

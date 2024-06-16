@@ -5,8 +5,7 @@ import prisma from '../../../prisma/client';
 import IssueBadge from '@/components/Status';
 import IssueActions from './issueActions';
 import DeleteIssue from '@/components/DeleteIssue';
-import { getServerSession } from 'next-auth';
-import { AuthOption } from '../auth/authOption';
+
 import { RowSpacingIcon } from '@radix-ui/react-icons';
 import { PaginationDemo } from './Pagination';
 import { SearchInput } from './SearchInput';
@@ -15,12 +14,12 @@ import {
   TableBody,
   TableCaption,
   TableCell,
-  TableFooter,
   TableHead,
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
 import FilterIssue from './filterIssue';
+import { sessionAuth } from '@/lib/sessionAUth';
 
 export const dynamic = 'force-dynamic';
 
@@ -100,7 +99,7 @@ export default async function IssuesPage({ searchParams }: any) {
   issues = await prisma.issue.findMany(queryOptions);
   const totalIssues = await prisma.issue.count({ where: queryOptions.where });
   const totalPages = Math.ceil(totalIssues / pageSize);
-  const session = await getServerSession(AuthOption);
+  const session = await sessionAuth();
 
   const getNextSortOrder = (currentOrder: string) =>
     currentOrder === 'asc' ? 'desc' : 'asc';
@@ -110,12 +109,12 @@ export default async function IssuesPage({ searchParams }: any) {
       <div className="flex justify-between items-center w-full">
         <div>{session ? <IssueActions /> : null}</div>
         <div className="flex space-x-2">
-          <SearchInput initialQuery={searchQuery} />
-          <FilterIssue initialStatus={status} />
+          <SearchInput />
+          <FilterIssue />
         </div>
       </div>
       <div className="overflow-x-auto">
-        <Table className="min-w-full max-w-3xl mx-auto bg-white dark:bg-gray-800 shadow-md rounded-lg">
+        <Table className="min-w-full max-w-3xl mx-auto bg-white dark:bg-black shadow-md rounded-lg">
           <TableCaption className="text-left p-2">
             A list of your recent issues.
           </TableCaption>
@@ -126,7 +125,7 @@ export default async function IssuesPage({ searchParams }: any) {
                   <Link
                     href={`?status=${status}&sortColumn=${column}&sortOrder=${getNextSortOrder(
                       sortOrder
-                    )}&search=${searchQuery}&page=1`}
+                    )}&search=${searchQuery}`}
                   >
                     {label}
                     {icon}

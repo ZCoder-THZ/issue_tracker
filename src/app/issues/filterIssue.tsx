@@ -1,5 +1,3 @@
-// src/app/issues/FilterComponent.tsx
-
 'use client';
 
 import React from 'react';
