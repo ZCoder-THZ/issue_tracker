@@ -5,8 +5,8 @@ import { sessionAuth } from '@/lib/sessionAUth';
 async function IssueActions() {
   const session = await sessionAuth();
   return (
-    <div className="">
-      <Button className="" className="mb-1 bg-blue-500 text-white">
+    <div>
+      <Button className="mb-1 bg-blue-500 text-white">
         {session ? <Link href="/issues/new">New Issue</Link> : 'Please Login'}
       </Button>
     </div>
