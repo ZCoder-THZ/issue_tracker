@@ -30,9 +30,10 @@ function SelectAction({ issue }: { issue: any }) {
 
   const assignUserMutation = useMutation({
     mutationFn: (issueData: { user_id: string }) => {
-      return axios.patch(`/api/issues/${issue?.id}`, issueData);
+      return axios.patch(`/api/issues/${issue?.id}/assignedUser`, issueData);
     },
     onSuccess: (resData) => {
+      console.log(resData);
       toast.success('User assigned successfully');
       router.refresh();
     },

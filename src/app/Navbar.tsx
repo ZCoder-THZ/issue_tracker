@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { CircleUser, Menu, Package2 } from 'lucide-react';
 import { usePathname } from 'next/navigation';
 import { Button } from '@/components/ui/button';
+
 import { useSession } from 'next-auth/react';
 import classnames from 'classnames';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -18,7 +19,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
-
+import Notification from '@/components/Notification';
 const links = [
   {
     name: 'Dashboard',
@@ -101,7 +102,7 @@ export default function Dashboard() {
               <Skeleton />
             </div>
           ) : status === 'authenticated' ? (
-            <div>
+            <div className="flex items-center space-x-1">
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button
@@ -133,6 +134,7 @@ export default function Dashboard() {
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
+              <Notification userId={session?.user?.id} />
             </div>
           ) : (
             <Link href="/api/auth/signin">Login</Link>

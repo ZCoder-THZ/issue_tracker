@@ -58,7 +58,6 @@ export async function PATCH(
       data: {
         title,
         description,
-        assignedToUserId: user_id,
         status,
         priority,
       },

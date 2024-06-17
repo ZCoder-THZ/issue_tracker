@@ -50,6 +50,7 @@ model User {
   assignedIssues Issue[]   @relation("UserAssignedIssues")
   issues         Issue[]   @relation("UserIssues")
   sessions       Session[]
+  notifications  Notification[]
 
   @@map("users")
 }
@@ -77,10 +78,26 @@ model Issue {
   assignedToUserId String?        @db.VarChar(255)
   assignedToUser   User?          @relation("UserAssignedIssues", fields: [assignedToUserId], references: [id])
   user             User           @relation("UserIssues", fields: [userId], references: [id])
+  notifications    Notification[]
 
   @@index([userId])
   @@index([assignedToUserId], map: "issues_assignedToUserId_fkey")
   @@map("issues")
+}
+
+model Notification {
+  id        Int      @id @default(autoincrement())
+  message   String   @db.VarChar(255)
+  type      String
+  createdAt DateTime @default(now())
+  userId    String
+  issueId   Int
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  issue     Issue    @relation(fields: [issueId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([issueId])
+  @@map("notifications")
 }
 
 enum IssueStatus {
