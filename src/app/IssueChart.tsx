@@ -15,17 +15,6 @@ import {
   PieChart,
 } from 'recharts';
 
-const data = [
-  { day: 'Sun', highest: 5, medium: 10, low: 15, lowest: 20 },
-  { day: 'Mon', highest: 3, medium: 8, low: 12, lowest: 16 },
-  { day: 'Mon', highest: 8, medium: 12, low: 10, lowest: 5 },
-  { day: 'Wed', highest: 3, medium: 8, low: 12, lowest: 16 },
-  { day: 'Tue', highest: 8, medium: 12, low: 10, lowest: 5 },
-  { day: 'Fri', highest: 3, medium: 8, low: 12, lowest: 16 },
-  { day: 'Sat', highest: 8, medium: 12, low: 10, lowest: 5 },
-  // Add more days as needed
-];
-
 const IssueChart = () => {
   const [pieData, setPieData] = React.useState([]);
   const [barData, setBarData] = React.useState([]);

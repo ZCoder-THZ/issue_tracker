@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '../../../../prisma/client';
 import { startOfWeek, endOfWeek, format } from 'date-fns';
-
+import { revalidateTag } from 'next/cache';
 export const GET = async (request: NextRequest) => {
   // Get the start and end dates of the current week
   const startDate = startOfWeek(new Date(), { weekStartsOn: 1 }); // Adjust weekStartsOn as per your locale
@@ -70,6 +70,8 @@ export const GET = async (request: NextRequest) => {
     { name: 'High', value: priorityCounts.high },
     // { name: 'Highest', value: priorityCounts.highest },
   ];
+
+  revalidateTag('issue_dashboard');
 
   return NextResponse.json({ data: dataArray, data2 });
 };

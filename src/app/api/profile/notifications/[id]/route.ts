@@ -11,7 +11,7 @@ export const GET = async (
         userId: params.id,
       },
     });
-
+    revalidateTag('notifications' + params.id);
     return NextResponse.json({ notifications });
   } catch (error) {
     return NextResponse.json({ error: error.message });
