@@ -1,5 +1,6 @@
 'use client';
-import React, { PureComponent } from 'react';
+import React, { PureComponent, use, useEffect } from 'react';
+import axios from 'axios';
 import {
   BarChart,
   Bar,
@@ -26,12 +27,25 @@ const data = [
 ];
 
 const IssueChart = () => {
+  const [pieData, setPieData] = React.useState([]);
+  const [barData, setBarData] = React.useState([]);
+
+  useEffect(() => {
+    fetchDashboardData();
+  }, []);
+
+  const fetchDashboardData = async () => {
+    const res = await axios.get('/api/dashboard');
+    setBarData(res.data.data);
+    setPieData(res.data.data2);
+  };
+
   return (
     <div className="chart-container">
       <div className="chart-item">
         <ResponsiveContainer width="100%" height={400}>
           <BarChart
-            data={data}
+            data={barData}
             margin={{
               top: 20,
               right: 30,
@@ -52,7 +66,7 @@ const IssueChart = () => {
         </ResponsiveContainer>
       </div>
       <div className="chart-item">
-        <IssuePie />
+        <IssuePie data={pieData} />
       </div>
     </div>
   );
@@ -68,45 +82,47 @@ const data2 = [
 ];
 const COLORS = ['#00ff00', '#00ccff', '#ffcc00', '#ff4c4c'];
 
-export class IssuePie extends PureComponent {
-  render() {
-    return (
-      <div className="pie-container">
-        <ResponsiveContainer width="100%" height={340}>
-          <PieChart>
-            <Pie
-              data={data2}
-              cx="50%"
-              cy="70%"
-              innerRadius={60}
-              outerRadius={80}
-              fill="#8884d8"
-              paddingAngle={5}
-              dataKey="value"
-            >
-              {data2.map((entry, index) => (
-                <Cell
-                  key={`cell-${index}`}
-                  fill={COLORS[index % COLORS.length]}
-                />
-              ))}
-            </Pie>
-          </PieChart>
-        </ResponsiveContainer>
-        <div className="labels">
-          {data2.map((entry, index) => (
-            <div key={`label-${index}`} className="label">
-              <span
-                className="label-color"
-                style={{ backgroundColor: COLORS[index % COLORS.length] }}
-              ></span>
-              <span className="label-text">
-                {entry.name + ' ' + entry.value}{' '}
-              </span>
-            </div>
-          ))}
-        </div>
+export const IssuePie = ({ data }) => {
+  const [pieData, setPieData] = React.useState([]);
+  useEffect(() => {
+    console.log(data);
+  }, []);
+  return (
+    <div className="pie-container">
+      <ResponsiveContainer width="100%" height={340}>
+        <PieChart>
+          <Pie
+            data={data}
+            cx="50%"
+            cy="70%"
+            innerRadius={60}
+            outerRadius={80}
+            fill="#8884d8"
+            paddingAngle={5}
+            dataKey="value"
+          >
+            {data.map((entry, index) => (
+              <Cell
+                key={`cell-${index}`}
+                fill={COLORS[index % COLORS.length]}
+              />
+            ))}
+          </Pie>
+        </PieChart>
+      </ResponsiveContainer>
+      <div className="labels">
+        {data.map((entry, index) => (
+          <div key={`label-${index}`} className="label">
+            <span
+              className="label-color"
+              style={{ backgroundColor: COLORS[index % COLORS.length] }}
+            ></span>
+            <span className="label-text">
+              {entry.name + ' ' + entry.value}{' '}
+            </span>
+          </div>
+        ))}
       </div>
-    );
-  }
-}
+    </div>
+  );
+};
