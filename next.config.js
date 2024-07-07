@@ -7,7 +7,7 @@ const nextConfig = {
     domains: [
       'via.placeholder.com',
       'lh3.googleusercontent.com',
-      'issue-local.s3.ap-south-1.amazonaws.com',
+      'posbucket12.s3.ap-southeast-1.amazonaws.com',
     ],
   },
 };
