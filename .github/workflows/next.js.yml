@@ -48,7 +48,7 @@ jobs:
         run: |
           ssh -o StrictHostKeyChecking=no ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} "bash -s" << 'EOF'
             # Change to the app directory on the EC2 instance
-            cd /path/to/your/app
+            cd /home/ubuntu
 
             # Pull the latest changes from the GitHub repository
             git pull origin main
