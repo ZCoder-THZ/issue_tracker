@@ -42,13 +42,14 @@ jobs:
       - name: Set up SSH
         uses: webfactory/ssh-agent@v0.5.1
         with:
-          ssh-private-key: ${{ secrets.EC2_SSH_KEY }}
+          ssh-private-key: ${{ secrets.VULTR_KEY }}
+          # ssh-private-key: ${{ secrets.EC2_SSH_KEY }}
 
       - name: Deploy to EC2
         run: |
-          ssh -o StrictHostKeyChecking=no ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} "bash -s" << 'EOF'
+          ssh -o StrictHostKeyChecking=no ${{ secrets.VULTR_USER }}@${{ secrets.VULTR_HOST }} "bash -s" << 'EOF'
             # Change to the app directory on the EC2 instance
-            cd /home/ubuntu/issue_tracker
+            cd /home/linuxuser
 
             # Pull the latest changes from the GitHub repository
             git pull origin main
