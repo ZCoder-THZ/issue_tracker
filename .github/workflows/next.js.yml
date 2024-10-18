@@ -49,7 +49,7 @@ jobs:
           ssh -o StrictHostKeyChecking=no ${{ secrets.VULTR_USER }}@${{ secrets.VULTR_HOST }} << 'EOF'
             echo 'SSH connected successfully'
             # Change to the app directory on the Vultr instance
-            cd /home/linuxuser
+            cd /home/linuxuser/issue_tracker
 
             # Pull the latest changes from the GitHub repository
             git pull origin main
