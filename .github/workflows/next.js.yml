@@ -46,20 +46,21 @@ jobs:
           # ssh-private-key: ${{ secrets.EC2_SSH_KEY }}
 
       - name: Deploy to EC2
+
         run: |
-          ssh -o StrictHostKeyChecking=no ${{ secrets.VULTR_USER }}@${{ secrets.VULTR_HOST }} "bash -s" << 'EOF'
-            # Change to the app directory on the EC2 instance
-            cd /home/linuxuser
+          ssh -o StrictHostKeyChecking=no ${{ secrets.VULTR_USER }}@${{ secrets.VULTR_HOST }} "echo 'SSH connected successfully'"
+             # Change to the app directory on the EC2 instance
+             cd /home/linuxuser
 
-            # Pull the latest changes from the GitHub repository
-            git pull origin main
+             # Pull the latest changes from the GitHub repository
+             git pull origin main
 
-            # Install dependencies
-            npm install
+             # Install dependencies
+             npm install
 
-            # Build the Next.js application
-            npm run build
+             # Build the Next.js application
+             npm run build
 
-            # Restart the application using PM2
-            pm2 restart my-app || pm2 start npm --name "my-app" -- run start
-          EOF
+             # Restart the application using PM2
+             pm2 restart my-app || pm2 start npm --name "my-app" -- run start
+           EOF
