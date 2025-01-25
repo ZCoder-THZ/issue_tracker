@@ -5,7 +5,7 @@ import ReactMarkdown from 'react-markdown';
 import prisma from '../../../../prisma/client'; // Adjust the path if needed
 import delay from 'delay';
 import SelectAction from '../SelectAction';
-
+import ResponseSection from './responseSection';
 interface Issue {
   id: number;
   title: string;
@@ -88,6 +88,7 @@ export default async function Dashboard({ params }: DashboardProps) {
               </div>
             </CardContent>
           </Card>
+          <ResponseSection />
         </div>
       </div>
     </div>
