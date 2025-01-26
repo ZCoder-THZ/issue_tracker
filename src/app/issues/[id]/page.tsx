@@ -88,7 +88,7 @@ export default async function Dashboard({ params }: DashboardProps) {
               </div>
             </CardContent>
           </Card>
-          <ResponseSection />
+          <ResponseSection issueId={issue.id} />
         </div>
       </div>
     </div>
