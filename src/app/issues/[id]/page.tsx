@@ -18,6 +18,7 @@ interface DashboardProps {
   params: { id: string };
 }
 
+
 export default async function Dashboard({ params }: DashboardProps) {
   // Fetch the issue data from the database
   const issue = await prisma.issue.findUnique({
@@ -29,6 +30,7 @@ export default async function Dashboard({ params }: DashboardProps) {
     return <div>Issue not found</div>;
   }
 
+
   let user = null;
   if (issue.assignedToUserId) {
     user = await prisma.user.findFirst({
@@ -38,8 +40,7 @@ export default async function Dashboard({ params }: DashboardProps) {
     });
   }
 
-  console.log(user);
-  await delay(1000);
+
 
   return (
     <div className="flex min-h-screen w-full flex-col  bg-muted/40 ">
