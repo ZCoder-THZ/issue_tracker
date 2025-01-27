@@ -1,9 +1,16 @@
 'use client';
+
 import { Button } from '@/components/ui/button';
 import { toast } from 'react-toastify';
 import 'easymde/dist/easymde.min.css';
 import { useState, useEffect } from 'react';
-import { useForm, Controller } from 'react-hook-form';
+import axios from 'axios';
+import {
+  useForm,
+  Controller,
+  FormProvider,
+  useFormContext,
+} from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import ErrorMessage from '@/components/ErrorMessage';
 import Spinner from '@/components/Spinner';
@@ -11,7 +18,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useRouter } from 'next/navigation';
 import SimpleMDEEditor from 'react-simplemde-editor';
 import { useSession } from 'next-auth/react';
-
+import DatePicker from './DatePicker';
 import {
   Card,
   CardContent,
@@ -23,7 +30,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { createIssueSchema } from '@/app/validationSchemas';
 import { z } from 'zod';
-import axios from 'axios';
+import MultiImageUpload from './new/imageUpload';
 
 type IssueForm = z.infer<typeof createIssueSchema>;
 
@@ -40,13 +47,8 @@ const IssueFormComponent: React.FC<IssueFormComponentProps> = ({ issue }) => {
   const { data: session } = useSession();
   const router = useRouter();
   const [loading, setLoading] = useState(false);
-  const {
-    register,
-    handleSubmit,
-    control,
-    setValue,
-    formState: { errors },
-  } = useForm<IssueForm>({
+
+  const methods = useForm<IssueForm>({
     resolver: zodResolver(createIssueSchema),
     defaultValues: {
       title: issue?.title || '',
@@ -54,6 +56,14 @@ const IssueFormComponent: React.FC<IssueFormComponentProps> = ({ issue }) => {
       priority: issue?.priority || 'low',
     },
   });
+
+  const {
+    register,
+    handleSubmit,
+    control,
+    setValue,
+    formState: { errors },
+  } = methods;
 
   useEffect(() => {
     if (issue) {
@@ -70,6 +80,7 @@ const IssueFormComponent: React.FC<IssueFormComponentProps> = ({ issue }) => {
       description: string;
       priority: 'high' | 'medium' | 'low' | 'lowest';
       user_id: number;
+      images: File[]; // Include images
     }) => {
       if (issue) {
         return axios.patch(`/api/issues/${issue.id}`, issueData);
@@ -85,62 +96,79 @@ const IssueFormComponent: React.FC<IssueFormComponentProps> = ({ issue }) => {
       router.refresh();
     },
     onError: (error) => {
-      console.log(error.response.message);
-      setLoading(false);
+      if (error instanceof Error) {
+        console.log(error.message);
+        setLoading(false);
+      }
     },
   });
 
   const onSubmit = ({ title, description, priority }: IssueForm) => {
+    const images = methods.getValues('images') || []; // Get uploaded images
+    console.log(images);
     setLoading(true);
     mutation.mutate({
       title,
       description,
       priority,
+      images, // Pass images here
       user_id: session?.user?.id,
     });
   };
 
   return (
-    <>
+    <FormProvider {...methods}>
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-        <Card>
-          <CardHeader>
-            <CardTitle>{issue ? 'Update Issue' : 'Add Issue'}</CardTitle>
-            <CardDescription>
-              Please {issue ? 'update' : 'add'} an issue
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              <div>
-                <Label htmlFor="name">Name</Label>
-                <Input
-                  id="name"
-                  {...register('title')}
-                  type="text"
-                  className="w-full mb-3"
-                />
-                {errors.title && (
-                  <ErrorMessage>{errors.title.message}</ErrorMessage>
-                )}
-              </div>
-              <div>
-                <Label htmlFor="description">Description</Label>
-                <Controller
-                  name="description"
-                  control={control}
-                  render={({ field }) => (
-                    <SimpleMDEEditor
-                      id="description"
-                      {...field}
-                      className="dark:bg-black"
-                    />
+        <div className="grid gap-6 md:grid-cols-8">
+          <Card className="col-span-5">
+            <CardHeader>
+              <CardTitle>{issue ? 'Update Issue' : 'Add Issue'}</CardTitle>
+              <CardDescription>
+                Please {issue ? 'update' : 'add'} an issue
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                <div>
+                  <Label htmlFor="name">Name</Label>
+                  <Input
+                    id="name"
+                    {...register('title')}
+                    type="text"
+                    className="w-full mb-3"
+                  />
+                  {errors.title && (
+                    <ErrorMessage>{errors.title.message}</ErrorMessage>
                   )}
-                />
-                {errors.description && (
-                  <ErrorMessage>{errors.description.message}</ErrorMessage>
-                )}
+                </div>
+                <div>
+                  <Label htmlFor="description">Description</Label>
+                  <Controller
+                    name="description"
+                    control={control}
+                    render={({ field }) => (
+                      <SimpleMDEEditor
+                        id="description"
+                        {...field}
+                        className="dark:bg-black"
+                      />
+                    )}
+                  />
+                  {errors.description && (
+                    <ErrorMessage>{errors.description.message}</ErrorMessage>
+                  )}
+                </div>
               </div>
+            </CardContent>
+          </Card>
+          <Card className="col-span-3">
+            <CardHeader>
+              <CardTitle>Due Date</CardTitle>
+              <CardDescription>
+                Select a due date for the issue
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
               <div>
                 <Label htmlFor="priority">Priority</Label>
                 <select
@@ -157,17 +185,19 @@ const IssueFormComponent: React.FC<IssueFormComponentProps> = ({ issue }) => {
                   <ErrorMessage>{errors.priority.message}</ErrorMessage>
                 )}
               </div>
-              <div className="flex justify-end">
-                <Button type="submit">
-                  {issue ? 'Update Issue' : 'Add Issue'}
-                  {loading && <Spinner />}
-                </Button>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+              <DatePicker />
+            </CardContent>
+          </Card>
+        </div>
+        <MultiImageUpload /> {/* Include the image upload */}
+        <div className="flex justify-end">
+          <Button type="submit">
+            {issue ? 'Update Issue' : 'Add Issue'}
+            {loading && <Spinner />}
+          </Button>
+        </div>
       </form>
-    </>
+    </FormProvider>
   );
 };
 
