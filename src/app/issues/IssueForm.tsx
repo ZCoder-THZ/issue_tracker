@@ -88,7 +88,8 @@ const IssueFormComponent: React.FC<IssueFormComponentProps> = ({ issue }) => {
         return axios.post('/api/issues', issueData);
       }
     },
-    onSuccess: () => {
+    onSuccess: ({ data }) => {
+      console.log(data)
       queryClient.invalidateQueries(['issues']);
       setLoading(false);
       toast.success(`Issue ${issue ? 'updated' : 'created'} successfully`);
@@ -104,17 +105,33 @@ const IssueFormComponent: React.FC<IssueFormComponentProps> = ({ issue }) => {
   });
 
   const onSubmit = ({ title, description, priority }: IssueForm) => {
-    const images = methods.getValues('images') || []; // Get uploaded images
-    console.log(images);
-    setLoading(true);
-    mutation.mutate({
-      title,
-      description,
-      priority,
-      images, // Pass images here
-      user_id: session?.user?.id,
+    const images = methods.getValues('images') || [];
+
+    const formData = new FormData();
+    formData.append('title', title);
+    formData.append('description', description);
+    formData.append('priority', priority);
+
+    if (session?.user?.id) {
+      formData.append('user_id', session.user.id);
+    }
+
+    // Append images to FormData
+    images.forEach((image: File) => {
+      formData.append('images', image); // Use the same key for all files
     });
+
+    setLoading(true);
+
+    console.log('FormData entries:');
+    for (const [key, value] of formData.entries()) {
+      console.log(key, value);
+    }
+
+    mutation.mutate(formData); // Pass the FormData to mutation
   };
+
+
 
   return (
     <FormProvider {...methods}>

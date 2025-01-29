@@ -4,10 +4,20 @@ const nextConfig = {
     ignoreBuildErrors: true,
   },
   images: {
-    domains: [
-      'via.placeholder.com',
-      'lh3.googleusercontent.com',
-      'nexcommerce.s3.ap-southeast-1.amazonaws.com',
+
+    // domains: [
+    //   'via.placeholder.com',
+    //   'lh3.googleusercontent.com',
+    // ],
+    remotePatterns: [
+      {
+        protocol: "https",
+        hostname: "issuetrack.s3.ap-southeast-1.amazonaws.com",
+      },
+      {
+        protocol: "https",
+        hostname: "via.placeholder.com",
+      },
     ],
   },
 };

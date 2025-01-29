@@ -65,7 +65,6 @@ model VerificationToken {
   @@unique([identifier, token])
   @@map("verificationtokens")
 }
-
 model Issue {
   id               Int             @id @default(autoincrement())
   title            String          @db.VarChar(255)
@@ -81,12 +80,24 @@ model Issue {
   assignedToUser   User?           @relation("UserAssignedIssues", fields: [assignedToUserId], references: [id])
   user             User            @relation("UserIssues", fields: [userId], references: [id])
   notifications    Notification[]
-  issueCommands    IssueCommand[]  // Add this field to relate back to IssueCommand
+  issueCommands    IssueCommand[]
+  issueImages      IssueImage[]    // New relation for storing images
 
   @@index([userId])
   @@index([assignedToUserId], map: "issues_assignedToUserId_fkey")
   @@map("issues")
 }
+
+model IssueImage {
+  id       Int    @id @default(autoincrement())
+  issueId  Int
+  imageUrl String @db.Text
+  issue    Issue  @relation(fields: [issueId], references: [id], onDelete: Cascade)
+
+  @@index([issueId])
+  @@map("issue_images")
+}
+
 model Notification {
   id        Int      @id @default(autoincrement())
   message   String   @db.VarChar(255)

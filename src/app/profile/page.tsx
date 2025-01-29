@@ -25,7 +25,7 @@ const ProfileCard = ({ user }: { user: User }) => {
           width={150}
           height={150}
           className="w-40 h-40 rounded-full"
-          src={user.image}
+          src={`https://issuetrack.s3.ap-southeast-1.amazonaws.com/${user.image}`}
           alt={user.name}
         />
       )}

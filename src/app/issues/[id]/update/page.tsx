@@ -7,10 +7,11 @@ const IssueForm = dynamic(() => import('../../IssueForm'), {
   ssr: false,
 });
 interface Props {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 }
 
-async function page({ params }: Props) {
+async function page(props: Props) {
+  const params = await props.params;
   const issue = await prisma.issue.findUnique({
     where: { id: Number(params.id) },
   });

@@ -29,7 +29,8 @@ const ProfileCard = ({ user }) => {
   );
 };
 
-const ProfilePage = async ({ params }) => {
+const ProfilePage = async props => {
+  const params = await props.params;
   const { id } = params;
   const user = await prisma.user.findUnique({
     where: { id },

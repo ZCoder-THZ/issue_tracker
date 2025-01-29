@@ -1,10 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '../../../../../../prisma/client';
 
-export const PATCH = async (
-  request: NextRequest,
-  { params }: { params: { id: number } }
-) => {
+export const PATCH = async (request: NextRequest, props: { params: Promise<{ id: number }> }) => {
+  const params = await props.params;
   try {
     const issueId = Number(params.id);
     const body = await request.json();

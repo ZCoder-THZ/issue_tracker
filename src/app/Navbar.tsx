@@ -134,7 +134,7 @@ export default function Dashboard() {
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
-              <Notification userId={session?.user?.id} />
+              {/* <Notification userId={session?.user?.id} /> */}
             </div>
           ) : (
             <Link href="/api/auth/signin">Login</Link>

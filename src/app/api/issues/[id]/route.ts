@@ -2,10 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import prisma from '../../../../../prisma/client';
 import { patchIssueSchema } from '@/app/validationSchemas';
 
-export async function DELETE(
-  request: NextRequest,
-  { params }: { params: { id: number } }
-) {
+export async function DELETE(request: NextRequest, props: { params: Promise<{ id: number }> }) {
+  const params = await props.params;
   try {
     const issue = await prisma.issue.delete({
       where: {
@@ -19,10 +17,8 @@ export async function DELETE(
   }
 }
 
-export async function PATCH(
-  request: NextRequest,
-  { params }: { params: { id: number } }
-) {
+export async function PATCH(request: NextRequest, props: { params: Promise<{ id: number }> }) {
+  const params = await props.params;
   try {
     const issue = await prisma.issue.findFirst({
       where: {

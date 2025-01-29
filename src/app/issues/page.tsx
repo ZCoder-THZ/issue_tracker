@@ -23,7 +23,8 @@ import { sessionAuth } from '@/lib/sessionAUth';
 
 export const dynamic = 'force-dynamic';
 
-export default async function IssuesPage({ searchParams }: any) {
+export default async function IssuesPage(props: any) {
+  const searchParams = await props.searchParams;
   const status = searchParams?.status || 'ALL';
   const sortColumn = searchParams?.sortColumn || 'createdAt';
   const sortOrder = searchParams?.sortOrder || 'asc';
