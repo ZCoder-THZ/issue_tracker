@@ -5,110 +5,68 @@ import prisma from '../../../prisma/client';
 import IssueBadge from '@/components/Status';
 import IssueActions from './issueActions';
 import DeleteIssue from '@/components/DeleteIssue';
-
 import { RowSpacingIcon } from '@radix-ui/react-icons';
 import { PaginationDemo } from './Pagination';
 import { SearchInput } from './SearchInput';
-import {
-  Table,
-  TableBody,
-  TableCaption,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table';
+import { Table, TableBody, TableCaption, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import FilterIssue from './filterIssue';
 import { sessionAuth } from '@/lib/sessionAUth';
-
+import IssueButton from './components/issueButton';
 export const dynamic = 'force-dynamic';
 
-export default async function IssuesPage(props: any) {
-  const searchParams = await props.searchParams;
-  const status = searchParams?.status || 'ALL';
-  const sortColumn = searchParams?.sortColumn || 'createdAt';
-  const sortOrder = searchParams?.sortOrder || 'asc';
-  const page = parseInt(searchParams?.page) || 1;
-  const pageSize = parseInt(searchParams?.pageSize) || 10;
-  const searchQuery = searchParams?.search || '';
+const headers = [
+  { label: 'Issue', column: 'title' },
+  { label: 'Status', column: 'status' },
+  { label: 'Assigned To', column: 'assignedToUser.name' },
+  { label: 'Priority', column: 'priority' },
+  { label: 'Created By', column: 'user.name' },
+  { label: 'Created At', column: 'createdAt' },
+];
 
-  const headers = [
-    {
-      label: 'Issue',
-      column: 'title',
-      icon: <RowSpacingIcon className="inline" />,
-    },
-    { label: 'Status', column: 'status', icon: null },
-    {
-      label: 'Assigned To',
-      column: 'assignedToUser.name',
-      icon: <RowSpacingIcon className="inline" />,
-    },
-    {
-      label: 'Priority',
-      column: 'priority',
-      icon: <RowSpacingIcon className="inline" />,
-    },
-    {
-      label: 'Created By',
-      column: 'user.name',
-      icon: <RowSpacingIcon className="inline" />,
-    },
-    {
-      label: 'Created At',
-      column: 'createdAt',
-      icon: <RowSpacingIcon className="inline" />,
-    },
-  ];
+const getNextSortOrder = (currentOrder: {
+  currentOrder: string;
+}) => (currentOrder === 'asc' ? 'desc' : 'asc');
 
-  let issues = [];
+export default async function IssuesPage({ searchParams }: {
+  searchParams: {
+    status: string;
+    sortColumn: string;
+    sortOrder: string;
+    page: number;
+    pageSize: number;
+    search: string;
+  };
+}) {
+  const session = await sessionAuth();
+  const { status = 'ALL', sortColumn = 'createdAt', sortOrder = 'asc', page = 1, pageSize = 10, search = '' } = searchParams;
 
   const queryOptions = {
-    include: {
-      user: true,
-      assignedToUser: true,
+    include: { user: true, assignedToUser: true },
+    orderBy: sortColumn.includes('.')
+      ? { [sortColumn.split('.')[0]]: { [sortColumn.split('.')[1]]: sortOrder } }
+      : { [sortColumn]: sortOrder },
+    where: {
+      ...(status !== 'ALL' && { status }),
+      ...(search && {
+        OR: [
+          { title: { contains: search } },
+          { user: { name: { contains: search } } },
+        ],
+      }),
     },
-    orderBy: {},
     skip: (page - 1) * pageSize,
     take: pageSize,
   };
 
-  // Nested sorting for related fields
-  if (sortColumn.includes('.')) {
-    const [relation, field] = sortColumn.split('.');
-    queryOptions.orderBy[relation] = { [field]: sortOrder };
-  } else {
-    queryOptions.orderBy[sortColumn] = sortOrder;
-  }
-
-  // Handle status filtering
-  if (status !== 'ALL') {
-    queryOptions.where = { status };
-  }
-
-  // Handle search filtering
-  if (searchQuery) {
-    queryOptions.where = {
-      ...queryOptions.where,
-      OR: [
-        { title: { contains: searchQuery } },
-        { user: { name: { contains: searchQuery } } },
-      ],
-    };
-  }
-
-  issues = await prisma.issue.findMany(queryOptions);
-  const totalIssues = await prisma.issue.count({ where: queryOptions.where });
-  const totalPages = Math.ceil(totalIssues / pageSize);
-  const session = await sessionAuth();
-
-  const getNextSortOrder = (currentOrder: string) =>
-    currentOrder === 'asc' ? 'desc' : 'asc';
+  const [issues, totalIssues] = await Promise.all([
+    prisma.issue.findMany(queryOptions),
+    prisma.issue.count({ where: queryOptions.where }),
+  ]);
 
   return (
     <div className="container mx-auto p-4">
       <div className="flex justify-between items-center w-full">
-        <div>{session ? <IssueActions /> : null}</div>
+        {session && <IssueActions />}
         <div className="flex space-x-2">
           <SearchInput />
           <FilterIssue />
@@ -116,20 +74,13 @@ export default async function IssuesPage(props: any) {
       </div>
       <div className="overflow-x-auto">
         <Table className="min-w-full max-w-3xl mx-auto bg-white dark:bg-black shadow-md rounded-lg">
-          <TableCaption className="text-left p-2">
-            A list of your recent issues.
-          </TableCaption>
+          <TableCaption className="text-left p-2">A list of your recent issues.</TableCaption>
           <TableHeader>
             <TableRow>
-              {headers.map(({ label, column, icon }) => (
+              {headers.map(({ label, column }) => (
                 <TableHead key={column} className="p-2">
-                  <Link
-                    href={`?status=${status}&sortColumn=${column}&sortOrder=${getNextSortOrder(
-                      sortOrder
-                    )}&search=${searchQuery}`}
-                  >
-                    {label}
-                    {icon}
+                  <Link href={`?status=${status}&sortColumn=${column}&sortOrder=${getNextSortOrder(sortOrder)}&search=${search}`}>
+                    {label} <RowSpacingIcon className="inline" />
                   </Link>
                 </TableHead>
               ))}
@@ -140,27 +91,25 @@ export default async function IssuesPage(props: any) {
             {issues.map((issue) => (
               <TableRow key={issue.id} className="border-b">
                 <TableCell className="font-medium p-2">
-                  <Link href={`/issues/${issue.id}`}>{issue.title}</Link>
+
+                  {/* <Link href={`/issues/${issue.id}`}>{issue.title}</Link> */}
+                  <IssueButton href={`/issues/${issue.id}`} title={
+                    issue.title
+                  } />
                 </TableCell>
                 <TableCell className="p-2">
                   <IssueBadge status={issue.status} />
                 </TableCell>
                 <TableCell className="font-medium p-2">
-                  <Link href={`/devs/${issue.assignedToUserId}`}>
-                    {issue.assignedToUser?.name}
-                  </Link>
+                  <Link href={`/devs/${issue.assignedToUserId}`}>{issue.assignedToUser?.name}</Link>
                 </TableCell>
-                <TableCell className="font-medium p-2">
-                  {issue.priority}
-                </TableCell>
+                <TableCell className="font-medium p-2">{issue.priority}</TableCell>
                 <TableCell className="font-medium p-2">
                   <Link href={`/issues/${issue.id}`}>{issue.user?.name}</Link>
                 </TableCell>
-                <TableCell className="p-2">
-                  {new Date(issue.createdAt).toDateString()}
-                </TableCell>
+                <TableCell className="p-2">{new Date(issue.createdAt).toDateString()}</TableCell>
                 <TableCell className="p-2 space-x-2">
-                  {session && session.user.role === 2 && (
+                  {session?.user.role === 2 && (
                     <div className="space-x-2">
                       <DeleteIssue issueId={issue.id} />
                       <Button color="cyan" variant="soft">
@@ -174,11 +123,7 @@ export default async function IssuesPage(props: any) {
           </TableBody>
         </Table>
         <div className="flex justify-between mt-4">
-          <PaginationDemo
-            itemCount={totalIssues}
-            pageSize={pageSize}
-            currentPage={page}
-          />
+          <PaginationDemo itemCount={totalIssues} pageSize={pageSize} currentPage={page} />
         </div>
       </div>
     </div>

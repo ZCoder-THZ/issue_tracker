@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from "react";
 import { socket } from "./socket";
 import { useSession } from "next-auth/react";
-
+import { useRouter } from "next/navigation"
 type ResponseType = {
     id: number;
     userId: string;
@@ -21,7 +21,7 @@ const ResponseSection = ({ issueId }: { issueId: number }) => {
     const [newResponse, setNewResponse] = useState("");
     const [replyInput, setReplyInput] = useState<Record<number, string>>({});
     const [activeReplyId, setActiveReplyId] = useState<number | null>(null); // Track which reply box is visible
-
+    const router = useRouter()
     // Connect to the server and manage events
     useEffect(() => {
         if (session?.user) {
@@ -29,7 +29,7 @@ const ResponseSection = ({ issueId }: { issueId: number }) => {
             socket.connect();
         }
 
-        socket.on("connected", () => setIsConnect(true));
+        socket.on("connected", () => setIsConnect(!isConnect));
         socket.on("fetch-comments", (comments: ResponseType[]) => {
             if (Array.isArray(comments)) {
                 setResponses(comments);
@@ -47,12 +47,17 @@ const ResponseSection = ({ issueId }: { issueId: number }) => {
             socket.off("fetch-comments");
             socket.off("disconnect");
         };
-    }, [session?.user?.email, replyInput]);
+    }, [session?.user?.email, replyInput, issueId]);
 
     useEffect(() => {
+        console.log('triggered')
+
         if (issueId) {
+            socket.on("connected", () => setIsConnect(!isConnect));
+
             socket.emit("get-comments", issueId);
         }
+
     }, [issueId]);
 
     const handleAddResponse = () => {
@@ -135,11 +140,7 @@ const ResponseSection = ({ issueId }: { issueId: number }) => {
     return (
         <div className="w-full max-w-2xl mx-auto p-4 border rounded-lg shadow-md bg-white">
             <div className="mb-4">
-                {isConnect ? (
-                    <h1 className="text-green-600">Connected</h1>
-                ) : (
-                    <h1 className="text-red-600">Not Connected</h1>
-                )}
+
                 {session ? <h1>{session.user?.email}</h1> : <h2>No session</h2>}
             </div>
 

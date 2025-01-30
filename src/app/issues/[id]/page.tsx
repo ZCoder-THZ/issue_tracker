@@ -4,12 +4,12 @@ import ReactMarkdown from 'react-markdown';
 import prisma from '../../../../prisma/client';
 import ResponseSection from './responseSection';
 import Image from 'next/image';
-
-interface DashboardProps {
+import IssueImages from './IssueImages';
+interface issueProps {
   params: Promise<{ id: string }>;
 }
 
-export default async function Dashboard(props: DashboardProps) {
+export default async function page(props: issueProps) {
   const params = await props.params;
   // Fetch the issue and related images
   const issue = await prisma.issue.findUnique({
@@ -60,28 +60,11 @@ export default async function Dashboard(props: DashboardProps) {
                   <ReactMarkdown>{issue.description}</ReactMarkdown>
                 </div>
               </div>
-
+              {
+                issue.issueImages.length > 0 && <IssueImages issueImages={issue.issueImages} />
+              }
               {/* Issue Images Section */}
-              {issue.issueImages.length > 0 && (
-                <div className="mt-6">
-                  <h3 className="text-lg font-semibold text-gray-800 mb-2">Issue Images</h3>
-                  <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                    {issue.issueImages.map((img) => (
-                      <div key={img.id} className="relative w-full h-32 md:h-40 rounded-lg overflow-hidden shadow-md">
-                        <Image
-                          priority
-                          src={img.imageUrl}
-                          alt="Issue Image"
-                          layout="fill"
-                          objectFit="cover"
-                          className="rounded-lg"
-                        />
-                        {/* <a href={img.imageUrl}></a> */}
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
+
             </CardContent>
           </Card>
         </div>
@@ -102,4 +85,4 @@ export default async function Dashboard(props: DashboardProps) {
   );
 }
 
-https://issuetrack.s3.ap-southeast-1.amazonaws.com/5Ri_Qz0adTpsxmedipuIt_Screenshot from 2025-01-23 17-25-36.png
+// https://issuetrack.s3.ap-southeast-1.amazonaws.com/5Ri_Qz0adTpsxmedipuIt_Screenshot from 2025-01-23 17-25-36.png
