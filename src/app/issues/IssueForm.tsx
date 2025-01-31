@@ -206,7 +206,9 @@ const IssueFormComponent: React.FC<IssueFormComponentProps> = ({ issue }) => {
             </CardContent>
           </Card>
         </div>
-        <MultiImageUpload /> {/* Include the image upload */}
+        <MultiImageUpload
+          issueImages={issue?.issueImages}
+        /> {/* Include the image upload */}
         <div className="flex justify-end">
           <Button type="submit">
             {issue ? 'Update Issue' : 'Add Issue'}

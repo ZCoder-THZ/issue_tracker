@@ -14,6 +14,14 @@ async function page(props: Props) {
   const params = await props.params;
   const issue = await prisma.issue.findUnique({
     where: { id: Number(params.id) },
+    include: {
+      issueImages: {
+        select: {
+          id: true,
+          imageUrl: true
+        }
+      }
+    }
   });
 
   return (
