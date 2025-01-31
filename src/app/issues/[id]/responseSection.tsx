@@ -137,6 +137,7 @@ const ResponseSection = ({ issueId }: { issueId: number }) => {
         setActiveReplyId((prev) => (prev === id ? null : id)); // Toggle reply input visibility
     };
 
+
     return (
         <div className="w-full max-w-2xl mx-auto p-4 border rounded-lg shadow-md bg-white">
             <div className="mb-4">

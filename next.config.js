@@ -1,5 +1,9 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  webpack(config) {
+    // Add any custom Webpack configuration here if necessary
+    return config;
+  },
   typescript: {
     ignoreBuildErrors: true,
   },
