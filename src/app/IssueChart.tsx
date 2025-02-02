@@ -1,6 +1,8 @@
 'use client';
-import React, { PureComponent, use, useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import axios from 'axios';
+import IssueTable from './DashboardComponent/issueTable';
+import { IssuePie } from './DashboardComponent/PieChart';
 import {
   BarChart,
   Bar,
@@ -15,9 +17,10 @@ import {
   PieChart,
 } from 'recharts';
 
+
 const IssueChart = () => {
-  const [pieData, setPieData] = React.useState([]);
-  const [barData, setBarData] = React.useState([]);
+  const [pieData, setPieData] = useState([]);
+  const [barData, setBarData] = useState([]);
 
   useEffect(() => {
     fetchDashboardData();
@@ -30,32 +33,34 @@ const IssueChart = () => {
   };
 
   return (
-    <div className="chart-container">
-      <div className="chart-item">
-        <ResponsiveContainer width="100%" height={400}>
-          <BarChart
-            data={barData}
-            margin={{
-              top: 20,
-              right: 30,
-              left: 20,
-              bottom: 5,
-            }}
-          >
-            <CartesianGrid strokeDasharray="3 3" />
-            <XAxis dataKey="day" />
-            <YAxis />
-            <Tooltip />
-            <Legend />
-            <Bar dataKey="highest" fill="#ff4c4c" name="Highest Priority" />
-            <Bar dataKey="medium" fill="#ffcc00" name="Medium Priority" />
-            <Bar dataKey="low" fill="#00ccff" name="Low Priority" />
-            <Bar dataKey="lowest" fill="#00ff00" name="Lowest Priority" />
-          </BarChart>
-        </ResponsiveContainer>
+    <div className="p-6 dark:bg-gray-700 min-h-screen">
+      <h2 className="text-2xl font-bold mb-6">Dashboard</h2>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="dark:bg-black bg-white p-4 rounded-2xl shadow-lg">
+          <h3 className="text-lg font-semibold mb-4">Priority Distribution</h3>
+          <ResponsiveContainer width="100%" height={400}>
+            <BarChart
+              data={barData}
+              margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
+            >
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis dataKey="day" />
+              <YAxis />
+              <Tooltip />
+              <Legend />
+              <Bar dataKey="highest" fill="#ff4c4c" name="Highest Priority" />
+              <Bar dataKey="medium" fill="#ffcc00" name="Medium Priority" />
+              <Bar dataKey="low" fill="#00ccff" name="Low Priority" />
+              IssueTable<Bar dataKey="lowest" fill="#00ff00" name="Lowest Priority" />
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
+        <div className="bg-white dark:bg-black p-4 rounded-2xl shadow-lg">
+          <IssuePie data={pieData} />
+        </div>
       </div>
-      <div className="chart-item">
-        <IssuePie data={pieData} />
+      <div className="mt-6 bg-white dark:bg-black p-4 rounded-2xl shadow-lg">
+        <IssueTable />
       </div>
     </div>
   );
@@ -63,55 +68,4 @@ const IssueChart = () => {
 
 export default IssueChart;
 
-const data2 = [
-  { name: 'Lowest', value: 20 },
-  { name: 'Low', value: 15 },
-  { name: 'Medium', value: 10 },
-  { name: 'Highest', value: 5 },
-];
-const COLORS = ['#00ff00', '#00ccff', '#ffcc00', '#ff4c4c'];
 
-export const IssuePie = ({ data }) => {
-  const [pieData, setPieData] = React.useState([]);
-  useEffect(() => {
-    console.log(data);
-  }, []);
-  return (
-    <div className="pie-container">
-      <ResponsiveContainer width="100%" height={340}>
-        <PieChart>
-          <Pie
-            data={data}
-            cx="50%"
-            cy="70%"
-            innerRadius={60}
-            outerRadius={80}
-            fill="#8884d8"
-            paddingAngle={5}
-            dataKey="value"
-          >
-            {data.map((entry, index) => (
-              <Cell
-                key={`cell-${index}`}
-                fill={COLORS[index % COLORS.length]}
-              />
-            ))}
-          </Pie>
-        </PieChart>
-      </ResponsiveContainer>
-      <div className="labels">
-        {data.map((entry, index) => (
-          <div key={`label-${index}`} className="label">
-            <span
-              className="label-color"
-              style={{ backgroundColor: COLORS[index % COLORS.length] }}
-            ></span>
-            <span className="label-text">
-              {entry.name + ' ' + entry.value}{' '}
-            </span>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-};
