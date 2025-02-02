@@ -1,24 +1,9 @@
 'use client';
 
-import { Button } from '@/components/ui/button';
-import { toast } from 'react-toastify';
-import 'easymde/dist/easymde.min.css';
-import { useState, useEffect } from 'react';
-import axios from 'axios';
-import {
-  useForm,
-  Controller,
-  FormProvider,
-  useFormContext,
-} from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
+import { createIssueSchema } from '@/app/validationSchemas';
 import ErrorMessage from '@/components/ErrorMessage';
 import Spinner from '@/components/Spinner';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { useRouter } from 'next/navigation';
-import SimpleMDEEditor from 'react-simplemde-editor';
-import { useSession } from 'next-auth/react';
-import DatePicker from './DatePicker';
+import { Button } from '@/components/ui/button';
 import {
   Card,
   CardContent,
@@ -28,8 +13,23 @@ import {
 } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { createIssueSchema } from '@/app/validationSchemas';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import axios from 'axios';
+import 'easymde/dist/easymde.min.css';
+import { useSession } from 'next-auth/react';
+import { useRouter } from 'next/navigation';
+import { useEffect, useState } from 'react';
+import {
+  Controller,
+  FormProvider,
+  useForm,
+  useFormContext,
+} from 'react-hook-form';
+import SimpleMDEEditor from 'react-simplemde-editor';
+import { toast } from 'react-toastify';
 import { z } from 'zod';
+import AssignDate from './DatePicker';
 import MultiImageUpload from './new/imageUpload';
 
 type IssueForm = z.infer<typeof createIssueSchema>;
@@ -90,9 +90,10 @@ const IssueFormComponent: React.FC<IssueFormComponentProps> = ({ issue }) => {
     },
     onSuccess: ({ data }) => {
       console.log(data)
-      queryClient.invalidateQueries(['issues']);
+      queryClient.invalidateQueries({ queryKey: ['issues'] });
       setLoading(false);
       toast.success(`Issue ${issue ? 'updated' : 'created'} successfully`);
+
       router.push('/issues');
       router.refresh();
     },
@@ -105,20 +106,28 @@ const IssueFormComponent: React.FC<IssueFormComponentProps> = ({ issue }) => {
   });
 
   const onSubmit = ({ title, description, priority }: IssueForm) => {
-    const images = methods.getValues('images') || [];
+    // Ensure images is typed correctly
+    const images: File[] | null = methods.getValues('images') || [];
+    const assignDate: string | null = methods.getValues('assignDate') || null;
+    const deadlineDate: string | null = methods.getValues('deadlineDate') || null;
 
+
+    console.log(assignDate, 'asssigne date')
     const formData = new FormData();
     formData.append('title', title);
     formData.append('description', description);
     formData.append('priority', priority);
+    if (assignDate) formData.append('assignDate', assignDate)
+    if (deadlineDate) formData.append('deadlineDate', deadlineDate)
+
 
     if (session?.user?.id) {
-      formData.append('user_id', session.user.id);
+      formData.append('user_id', String(session.user.id)); // Convert to string
     }
 
     // Append images to FormData
-    images.forEach((image: File) => {
-      formData.append('images', image); // Use the same key for all files
+    images.forEach((image) => {
+      formData.append('images', image);
     });
 
     setLoading(true);
@@ -127,10 +136,10 @@ const IssueFormComponent: React.FC<IssueFormComponentProps> = ({ issue }) => {
     for (const [key, value] of formData.entries()) {
       console.log(key, value);
     }
+    // console.log(formData.get('assignDate'), formData.get('deadlineDate'))
 
-    mutation.mutate(formData); // Pass the FormData to mutation
+    mutation.mutate(formData); // Pass the correctly typed FormData
   };
-
 
 
   return (
@@ -202,7 +211,12 @@ const IssueFormComponent: React.FC<IssueFormComponentProps> = ({ issue }) => {
                   <ErrorMessage>{errors.priority.message}</ErrorMessage>
                 )}
               </div>
-              <DatePicker />
+              {
+                issue && <AssignDate
+                  assignedDate={issue?.assignedDate}
+                  deadlineDate={issue?.deadlineDate}
+                />
+              }
             </CardContent>
           </Card>
         </div>
@@ -210,10 +224,11 @@ const IssueFormComponent: React.FC<IssueFormComponentProps> = ({ issue }) => {
           issueImages={issue?.issueImages}
         /> {/* Include the image upload */}
         <div className="flex justify-end">
-          <Button type="submit">
+          <Button type="submit" disabled={loading}>
             {issue ? 'Update Issue' : 'Add Issue'}
             {loading && <Spinner />}
           </Button>
+
         </div>
       </form>
     </FormProvider>

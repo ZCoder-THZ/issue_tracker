@@ -25,8 +25,15 @@ export async function PATCH(request: NextRequest, props: { params: Promise<{ id:
     const title = formData.get('title')?.toString();
     const priority = formData.get('priority')?.toString();
     const description = formData.get('description')?.toString();
+    const assignDate = formData.get('assignDate')?.toString();
+    const deadlineDate = formData.get('deadlineDate')?.toString();
+
     const files = formData.getAll('images') as File[];
-    const deleteImages = JSON.parse(formData.get('delete_images') as string || '[]'); // List of image URLs to delete
+    const deleteImages = JSON.parse(formData.get('delete_images') as string || '[]');
+
+    // Convert dates to ISO-8601 format
+    const assignedDate = assignDate ? new Date(assignDate).toISOString() : null;
+    const deadlineDateISO = deadlineDate ? new Date(deadlineDate).toISOString() : null;
 
     // Validate input
     const validation = patchIssueSchema.safeParse({ userId, title, description, priority });
@@ -37,7 +44,7 @@ export async function PATCH(request: NextRequest, props: { params: Promise<{ id:
     // Delete specified images from S3
     if (deleteImages.length > 0) {
       for (const imageUrl of deleteImages) {
-        const key = imageUrl.split('/').pop(); // Extract filename from URL
+        const key = imageUrl.split('/').pop();
         await s3Client.send(new DeleteObjectCommand({ Bucket: BUCKET_NAME, Key: key }));
         await prisma.issueImage.deleteMany({ where: { issueId, imageUrl } });
       }
@@ -71,10 +78,16 @@ export async function PATCH(request: NextRequest, props: { params: Promise<{ id:
       }
     }
 
-    // Update issue details
+    // Update issue details in Prisma
     const updatedIssue = await prisma.issue.update({
       where: { id: issueId },
-      data: { title, description, priority },
+      data: {
+        title,
+        description,
+        priority,
+        assignedDate, // Updated date
+        deadlineDate: deadlineDateISO, // Updated date
+      },
     });
 
     return NextResponse.json({

@@ -3,86 +3,124 @@ import IssueBadge from '@/components/Status';
 import ReactMarkdown from 'react-markdown';
 import prisma from '../../../../prisma/client';
 import ResponseSection from './responseSection';
-import Image from 'next/image';
 import IssueImages from './IssueImages';
-interface issueProps {
+
+interface IssueProps {
   params: Promise<{ id: string }>;
 }
 
-export default async function page(props: issueProps) {
+export default async function Page(props: IssueProps) {
   const params = await props.params;
-  // Fetch the issue and related images
+
+  // Fetch issue and related images
   const issue = await prisma.issue.findUnique({
     where: { id: Number(params.id) },
     include: {
-      issueImages: {
-        select: {
-          id: true,
-          imageUrl: true
-        }
-      },
-    }
+      issueImages: { select: { id: true, imageUrl: true } },
+    },
   });
 
   if (!issue) {
-    return <div>Issue not found</div>;
+    return (
+      <div className="flex h-screen items-center justify-center text-gray-500">       <div>
+        <h3 className="text-lg font-semibold text-gray-900">Priority</h3>
+        <span
+          className={`inline-block px-3 py-1 text-sm font-medium text-white rounded-full ${issue.priority === 'High'
+            ? 'bg-red-500'
+            : issue.priority === ''
+              ? 'bg-yellow-500'
+              : 'bg-green-500'
+            }`}
+        >
+          {issue.priority}
+        </span>
+      </div>
+        Issue not found
+      </div>
+    );
   }
-  console.log(issue)
+
   // Fetch assigned user
   const user = issue.assignedToUserId
     ? await prisma.user.findFirst({ where: { id: issue.assignedToUserId } })
     : null;
 
   return (
-    <div className="flex min-h-screen w-full flex-col bg-muted/40">
-      <div className="grid gap-4 md:grid-cols-[1fr_150px] lg:grid-cols-3 mt-5 mx-auto lg:gap-8 w-[80%]">
-        <div className="grid auto-rows-max items-start gap-4 lg:col-span-2 lg:gap-8">
-          <Card className="border border-gray-200 rounded-lg overflow-hidden">
-            <div className="p-4 bg-gray-100 border-b border-gray-200 flex justify-between items-center">
+    <div className="flex min-h-screen w-full flex-col bg-gray-50 py-10 px-4 lg:px-20">
+      <div className="grid gap-6 md:grid-cols-1 lg:grid-cols-3 mx-auto w-full max-w-5xl">
+        {/* Left Content (Issue Details) */}
+        <div className="lg:col-span-2 space-y-6">
+          <Card className="shadow-md border border-gray-200 rounded-lg">
+            <div className="p-5 bg-gray-100 border-b border-gray-200 flex justify-between items-center">
               <div>
-                <h2 className="text-lg font-semibold text-gray-800">
-                  Product Details
+                <h2 className="text-lg font-semibold text-gray-900">
+                  Issue Details
                 </h2>
-                <p className="text-sm text-gray-600">{issue.createdAt.toDateString()}</p>
+                <p className="text-sm text-gray-600">
+                  {new Date(issue.createdAt).toDateString()}
+                </p>
               </div>
-              <div className="w-16">
-                <IssueBadge status={issue.status} />
-              </div>
+              <IssueBadge status={issue.status} />
             </div>
-            <CardContent className="p-4">
-              <div className="mb-4">
-                <h3 className="text-lg font-semibold text-gray-800">Name</h3>
+            <CardContent className="p-6 space-y-5">
+              {/* Title */}
+              <div>
+                <h3 className="text-lg font-semibold text-gray-900">Title</h3>
                 <p className="text-gray-700">{issue.title}</p>
               </div>
+
+              {/* Priority */}
+              {/* Priority Badge */}
               <div>
-                <h3 className="text-lg font-semibold text-gray-800">Description</h3>
-                <div className="text-gray-700">
+                <h3 className="text-lg font-semibold text-gray-900">Priority</h3>
+                <span
+                  className={`inline-block px-3 py-1 text-sm font-medium text-white rounded-full ${issue.priority === 'high' ? 'bg-red-500' :
+                    issue.priority === 'medium' ? 'bg-orange-400' :
+                      issue.priority === 'low' ? 'bg-yellow-500' :
+                        'bg-green-500' // Lowest priority
+                    }`}
+                >
+                  {issue.priority.charAt(0).toUpperCase() + issue.priority.slice(1)}
+                </span>
+              </div>
+
+
+              {/* Description */}
+              <div>
+                <h3 className="text-lg font-semibold text-gray-900">
+                  Description
+                </h3>
+                <div className="text-gray-700 prose">
                   <ReactMarkdown>{issue.description}</ReactMarkdown>
                 </div>
               </div>
-              {
-                issue.issueImages.length > 0 && <IssueImages issueImages={issue.issueImages} />
-              }
-              {/* Issue Images Section */}
 
+              {/* Issue Images Section */}
+              {issue.issueImages.length > 0 && (
+                <IssueImages issueImages={issue.issueImages} />
+              )}
             </CardContent>
           </Card>
         </div>
 
-        <div className="grid auto-rows-max items-start gap-4 lg:gap-8">
-          <Card>
-            <CardContent className="p-4">
-              <div className="space-y-4">
-                <h3 className="text-lg font-semibold text-gray-800">Assigned person</h3>
-                <div className="text-gray-700">{user ? user.name : 'Not Assigned'}</div>
-              </div>
+        {/* Right Content (Assigned Person & Response Section) */}
+        <div className="space-y-6">
+          {/* Assigned Person */}
+          <Card className="shadow-md border border-gray-200 rounded-lg">
+            <CardContent className="p-6">
+              <h3 className="text-lg font-semibold text-gray-900">
+                Assigned Person
+              </h3>
+              <p className="text-gray-700 mt-2">
+                {user ? user.name : 'Not Assigned'}
+              </p>
             </CardContent>
           </Card>
+
+          {/* Response Section */}
           <ResponseSection issueId={issue.id} />
         </div>
       </div>
     </div>
   );
 }
-
-// https://issuetrack.s3.ap-southeast-1.amazonaws.com/5Ri_Qz0adTpsxmedipuIt_Screenshot from 2025-01-23 17-25-36.png

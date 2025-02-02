@@ -12,7 +12,9 @@ function IssueButton({
     const router = useRouter()
     return (
         <Link href={href} >
-            Go to Issue
+            {
+                title
+            }
         </Link>
     )
 }
