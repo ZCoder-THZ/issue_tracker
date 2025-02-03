@@ -37,6 +37,7 @@ export const POST = async (request: NextRequest) => {
     }
     const { url, fields } = await s3Init(key, fileType);
 
+    console.log(url)
     return new Response(JSON.stringify({ url, fields }), {
       headers: { 'Content-Type': 'application/json' },
     });

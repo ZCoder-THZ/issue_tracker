@@ -1,13 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '../../../../prisma/client';
-import { startOfWeek, endOfWeek, format } from 'date-fns';
+import { startOfMonth, endOfMonth, format } from 'date-fns';
 import { revalidateTag } from 'next/cache';
-export const GET = async (request: NextRequest) => {
-  // Get the start and end dates of the current week
-  const startDate = startOfWeek(new Date(), { weekStartsOn: 1 }); // Adjust weekStartsOn as per your locale
-  const endDate = endOfWeek(new Date(), { weekStartsOn: 1 }); // Adjust weekStartsOn as per your locale
 
-  // Retrieve issues created within the current week
+export const GET = async (request: NextRequest) => {
+  // Get the start and end dates of the current month
+  const startDate = startOfMonth(new Date());
+  const endDate = endOfMonth(new Date());
+
+  // Retrieve issues created within the current month
   const issues = await prisma.issue.findMany({
     where: {
       createdAt: {
@@ -26,12 +27,12 @@ export const GET = async (request: NextRequest) => {
   // Iterate through the issues and count the occurrences of each priority level by date
   issues.forEach((issue) => {
     const date = format(new Date(issue.createdAt), 'yyyy-MM-dd');
-    const dayOfWeek = format(new Date(issue.createdAt), 'eee');
+    const dayOfMonth = format(new Date(issue.createdAt), 'dd');
 
     // If the date key doesn't exist in countsByDate, create it
     if (!countsByDate[date]) {
       countsByDate[date] = {
-        day: dayOfWeek,
+        day: dayOfMonth,
         lowest: 0,
         low: 0,
         medium: 0,
@@ -68,7 +69,7 @@ export const GET = async (request: NextRequest) => {
     { name: 'Low', value: priorityCounts.low },
     { name: 'Medium', value: priorityCounts.medium },
     { name: 'High', value: priorityCounts.high },
-    // { name: 'Highest', value: priorityCounts.highest },
+    { name: 'Highest', value: priorityCounts.highest },
   ];
 
   revalidateTag('issue_dashboard');
