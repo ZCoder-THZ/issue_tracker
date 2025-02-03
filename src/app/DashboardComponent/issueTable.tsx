@@ -1,36 +1,38 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import {
     Table,
     TableBody,
-    TableCaption,
     TableCell,
     TableHead,
     TableHeader,
     TableRow,
 } from "@/components/ui/table";
+import { useQuery } from "@tanstack/react-query";
+import axios from "axios";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils"; // Utility function for Tailwind class merging
 
 export default function IssueTable() {
-    const [issues, setIssues] = useState([]);
+    const fetchIssues = async () => {
+        const res = await axios.get("api/dashboard/issues");
+        return res.data; // Ensure this matches your API response
+    };
 
-    useEffect(() => {
-        async function fetchIssues() {
-            try {
-                const res = await fetch("http://localhost:3000/api/dashboard/issues");
-                const data = await res.json();
-                if (data.success) {
-                    setIssues(data.data);
-                }
-            } catch (error) {
-                console.error("Failed to fetch issues:", error);
-            }
-        }
+    const { data, isPending, error } = useQuery({
+        queryKey: ["dashboard/issues"],
+        queryFn: fetchIssues,
+    });
 
-        fetchIssues();
-    }, []);
+    const issues = data?.data || []; // Ensure issues is always an array
+
+    if (isPending) {
+        return <div className="text-center py-6 text-gray-600 dark:text-gray-300">⏳ Loading issues...</div>;
+    }
+
+    if (error) {
+        return <div className="text-center py-6 text-red-500">❌ Failed to load issues</div>;
+    }
 
     return (
         <div className="p-6 rounded-xl shadow-lg bg-white dark:bg-gray-900 text-gray-900 dark:text-white transition-colors duration-300">
@@ -47,7 +49,7 @@ export default function IssueTable() {
                 </TableHeader>
                 <TableBody>
                     {issues.length > 0 ? (
-                        issues.map((issue, index) => (
+                        issues.map((issue: any, index: number) => (
                             <TableRow
                                 key={issue.id}
                                 className={cn(
