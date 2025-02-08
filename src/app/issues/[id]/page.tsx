@@ -106,8 +106,10 @@ export default async function Page(props: IssueProps) {
             </CardContent>
           </Card>
 
-          {/* Response Section */}
-          <ResponseSection issueId={issue.id} />
+          {/* Response Section */}replies
+          <ResponseSection issueId={issue.id} issueOwnerId={
+            issue.userId
+          } />
         </div>
       </div>
     </div>
