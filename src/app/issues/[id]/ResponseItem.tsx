@@ -29,6 +29,7 @@ const ResponseItem = ({
     replyInput: Record<number, string>;
     setReplyInput: React.Dispatch<React.SetStateAction<Record<number, string>>>;
 }) => {
+
     return (
         <div className="p-4 border rounded-lg bg-gray-50">
             <div className="flex justify-between">
@@ -72,13 +73,13 @@ const ResponseItem = ({
             )}
 
             {/* Replies List */}
-            {/* <div className="mt-4 space-y-2">
-                {response.replies.map((reply) => (
+            <div className="mt-4 space-y-2">
+                {response?.replies?.map((reply) => (
                     <div key={reply.id} className="pl-4 border-l border-gray-200">
                         <div className="flex justify-between">
                             <div>
-                                <h4 className="font-semibold">{reply.user.email}</h4>
-                                <p className="text-sm text-gray-500">{reply.timestamp}</p>
+                                <h4 className="font-semibold"></h4>
+                                <p className="text-sm text-gray-500"></p>
                                 <p>{reply.text}</p>
                             </div>
                             <button className="text-blue-500 hover:underline" onClick={() => handleLike(reply.id, true, response.id)}>
@@ -87,7 +88,7 @@ const ResponseItem = ({
                         </div>
                     </div>
                 ))}
-            </div> */}
+            </div>
         </div>
     );
 };

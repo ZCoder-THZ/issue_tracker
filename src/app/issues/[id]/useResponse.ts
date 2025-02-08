@@ -6,11 +6,11 @@ import { set } from "date-fns";
 export type ResponseType = {
     id: number;
     userId: string;
-    user: { name: string; email: string };
+    user: { name: string; email: string } | any;
     timestamp: string;
     text: string;
     likes: number;
-    replies: ResponseType[];
+    replies: ResponseType[] | any;
 };
 
 const useResponses = (issueId: number, issueOwnerId: string) => {
@@ -31,6 +31,9 @@ const useResponses = (issueId: number, issueOwnerId: string) => {
         socket.on("connected", () => setIsConnected(true));
         socket.on("fetch-comments", (comments: ResponseType[]) => setResponses(comments));
         socket.on("disconnect", () => setIsConnected(false));
+        if (session?.user?.id === issueOwnerId) {
+            setIsOwner(true)
+        }
 
         return () => {
             socket.off("connected");
@@ -42,15 +45,13 @@ const useResponses = (issueId: number, issueOwnerId: string) => {
     useEffect(() => {
         if (issueId) {
             socket.emit("get-comments", issueId);
-            if (session?.user?.id === issueOwnerId) {
-                setIsOwner(true)
-            }
+
         }
 
     }, [issueId]);
 
     const handleAddResponse = () => {
-        console.log('clicked')
+
         if (!newResponse.trim()) return;
 
         const newComment = {
@@ -69,8 +70,17 @@ const useResponses = (issueId: number, issueOwnerId: string) => {
 
         setNewResponse("");
     };
-
-    return { responses, setResponses, newResponse, setNewResponse, handleAddResponse, isConnected, isOwner };
+    const handleReplyEmit = (id: number, replyText: string) => {
+        socket.emit("add-reply", {
+            issueId,
+            commentId: id,
+            text: replyText,
+            userId: session?.user?.id,
+        }, (savedResponse: ResponseType) => {
+            setResponses((prev) => [savedResponse, ...prev]);
+        });
+    }
+    return { responses, setResponses, newResponse, setNewResponse, handleAddResponse, isConnected, isOwner, session, handleReplyEmit };
 };
 
 export default useResponses;
