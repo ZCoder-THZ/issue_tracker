@@ -78,12 +78,16 @@ const ResponseItem = ({
                     <div key={reply.id} className="pl-4 border-l border-gray-200">
                         <div className="flex justify-between">
                             <div>
-                                <h4 className="font-semibold"></h4>
-                                <p className="text-sm text-gray-500"></p>
+                                <h4 className="font-semibold">Username</h4>
+                                <p className="text-sm text-gray-500">Email</p>
                                 <p>{reply.text}</p>
                             </div>
                             <button className="text-blue-500 hover:underline" onClick={() => handleLike(reply.id, true, response.id)}>
                                 ❤️ {reply.likes}
+                            </button>
+
+                            <button className="text-blue-500 hover:underline mt-2" onClick={() => toggleReplyBox(response.id)}>
+                                Reply
                             </button>
                         </div>
                     </div>
