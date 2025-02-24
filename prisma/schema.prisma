@@ -3,56 +3,55 @@ generator client {
 }
 
 datasource db {
-  provider = "mysql"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
 model Account {
   id                String  @id @default(cuid())
-  userId            String  @map("user_id")
+  userId            String
   type              String
   provider          String
-  providerAccountId String  @map("provider_account_id")
-  refresh_token     String? @db.Text
-  access_token      String? @db.Text
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
   expires_at        Int?
   token_type        String?
   scope             String?
-  id_token          String? @db.Text
+  id_token          String?
   session_state     String?
   user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([provider, providerAccountId])
-  @@index([userId], map: "accounts_user_id_fkey")
+  @@index([userId])
   @@map("accounts")
 }
 
 model Session {
   id           String   @id @default(cuid())
-  sessionToken String   @unique @map("session_token")
-  userId       String   @map("user_id")
+  sessionToken String   @unique
+  userId       String
   expires      DateTime
   user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  @@index([userId], map: "sessions_user_id_fkey")
+  @@index([userId])
   @@map("sessions")
 }
-
 
 model User {
   id             String          @id @default(cuid())
   name           String?
   email          String?         @unique
-  emailVerified  DateTime?       @map("email_verified")
+  emailVerified  DateTime?
   image          String?
-  role           Int             @default(0) @db.TinyInt
+  role           Int             @default(0)
   password       String?
   accounts       Account[]
   assignedIssues Issue[]         @relation("UserAssignedIssues")
   issues         Issue[]         @relation("UserIssues")
   sessions       Session[]
   notifications  Notification[]
-  issueCommands  IssueCommand[]  // Add this field to relate back to IssueCommand
+  issueCommands  IssueCommand[]
 
   @@map("users")
 }
@@ -65,10 +64,11 @@ model VerificationToken {
   @@unique([identifier, token])
   @@map("verificationtokens")
 }
+
 model Issue {
   id               Int             @id @default(autoincrement())
-  title            String          @db.VarChar(255)
-  description      String          @db.VarChar(255)
+  title            String
+  description      String
   status           IssueStatus     @default(OPEN)
   priority         IssuePriority   @default(low)
   assignedDate     DateTime?
@@ -76,22 +76,22 @@ model Issue {
   createdAt        DateTime        @default(now())
   updatedAt        DateTime        @updatedAt
   userId           String
-  assignedToUserId String?         @db.VarChar(255)
+  assignedToUserId String?
   assignedToUser   User?           @relation("UserAssignedIssues", fields: [assignedToUserId], references: [id])
   user             User            @relation("UserIssues", fields: [userId], references: [id])
   notifications    Notification[]
   issueCommands    IssueCommand[]
-  issueImages      IssueImage[]    // New relation for storing images
+  issueImages      IssueImage[]
 
   @@index([userId])
-  @@index([assignedToUserId], map: "issues_assignedToUserId_fkey")
+  @@index([assignedToUserId])
   @@map("issues")
 }
 
 model IssueImage {
   id       Int    @id @default(autoincrement())
   issueId  Int
-  imageUrl String @db.Text
+  imageUrl String
   issue    Issue  @relation(fields: [issueId], references: [id], onDelete: Cascade)
 
   @@index([issueId])
@@ -100,7 +100,7 @@ model IssueImage {
 
 model Notification {
   id        Int      @id @default(autoincrement())
-  message   String   @db.VarChar(255)
+  message   String
   type      String
   createdAt DateTime @default(now())
   userId    String
@@ -112,22 +112,22 @@ model Notification {
   @@index([issueId])
   @@map("notifications")
 }
+
 model IssueCommand {
   id          Int      @id @default(autoincrement())
-  issueId     Int      @map("issue_id")
-  userId      String   @map("user_id")
+  issueId     Int
+  userId      String
   timestamp   DateTime @default(now())
-  text        String   @db.Text
+  text        String
   likes       Int      @default(0)
   replies     Json     @default("[]")
   user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   issue       Issue    @relation(fields: [issueId], references: [id], onDelete: Cascade)
 
-  @@index([issueId], map: "issue_commands_issue_id_fkey")
-  @@index([userId], map: "issue_commands_user_id_fkey")
+  @@index([issueId])
+  @@index([userId])
   @@map("issue_commands")
 }
-
 
 enum IssueStatus {
   OPEN
