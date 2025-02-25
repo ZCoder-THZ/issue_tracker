@@ -1,12 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '../../../../../prisma/client';
 import { patchIssueSchema } from '@/app/validationSchemas';
-import { s3Client } from '@/lib/utils';
-import { PutObjectCommand, DeleteObjectCommand } from '@aws-sdk/client-s3';
+import { v2 as cloudinary } from 'cloudinary';
 import sharp from 'sharp';
 import { Buffer } from 'buffer';
 
-const BUCKET_NAME = process.env.AWS_BUCKET_NAME;
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
+});
 
 export async function PATCH(request: NextRequest, props: { params: Promise<{ id: number }> }) {
   const params = await props.params;
@@ -41,18 +44,21 @@ export async function PATCH(request: NextRequest, props: { params: Promise<{ id:
       return NextResponse.json(validation.error.errors, { status: 400 });
     }
 
-    // Delete specified images from S3
+    // Delete specified images
     if (deleteImages.length > 0) {
       for (const imageUrl of deleteImages) {
-        const key = imageUrl.split('/').pop();
-        await s3Client.send(new DeleteObjectCommand({ Bucket: BUCKET_NAME, Key: key }));
-        await prisma.issueImage.deleteMany({ where: { issueId, imageUrl } });
+        try {
+          await prisma.issueImage.deleteMany({ where: { issueId, imageUrl } });
+        } catch (deleteError) {
+          console.error('Failed to delete image:', deleteError);
+          // Continue even if deletion fails
+        }
       }
     }
 
     const uploadResults = [];
 
-    // Upload new images to S3
+    // Upload new images to Cloudinary
     for (const file of files) {
       if (file instanceof File) {
         const fileName = `${Date.now()}_${Math.floor(Math.random() * 10000)}.webp`;
@@ -60,15 +66,28 @@ export async function PATCH(request: NextRequest, props: { params: Promise<{ id:
         const buffer = Buffer.from(arrayBuffer);
         const webpBuffer = await sharp(buffer).webp().toBuffer();
 
-        const params = {
-          Bucket: BUCKET_NAME,
-          Key: fileName,
-          Body: webpBuffer,
-          ContentType: 'image/webp',
-        };
+        let imageUrl = '';
+        try {
+          // Upload to Cloudinary
+          const cloudinaryResult = await new Promise<any>((resolve, reject) => {
+            cloudinary.uploader.upload_stream(
+              { resource_type: 'image', public_id: fileName, format: 'webp' },
+              (error, result) => {
+                if (error) {
+                  console.error('Cloudinary upload failed:', error);
+                  reject(new Error('Cloudinary upload failed'));
+                } else {
+                  resolve(result);
+                }
+              }
+            ).end(webpBuffer);
+          });
 
-        await s3Client.send(new PutObjectCommand(params));
-        const imageUrl = `https://${BUCKET_NAME}.s3.ap-southeast-1.amazonaws.com/${fileName}`;
+          imageUrl = cloudinaryResult?.secure_url || '';
+        } catch (cloudinaryError) {
+          console.error('Cloudinary upload failed:', cloudinaryError);
+          throw new Error('Cloudinary upload failed');
+        }
 
         uploadResults.push(imageUrl);
 

@@ -24,7 +24,6 @@ import {
   Controller,
   FormProvider,
   useForm,
-  useFormContext,
 } from 'react-hook-form';
 import SimpleMDEEditor from 'react-simplemde-editor';
 import { toast } from 'react-toastify';
@@ -40,6 +39,9 @@ interface IssueFormComponentProps {
     title: string;
     description: string;
     priority: 'high' | 'medium' | 'low' | 'lowest';
+    assignedDate?: string;
+    deadlineDate?: string;
+    issueImages?: { id: number; imageUrl: string }[];
   } | null;
 }
 
@@ -75,13 +77,7 @@ const IssueFormComponent: React.FC<IssueFormComponentProps> = ({ issue }) => {
 
   const queryClient = useQueryClient();
   const mutation = useMutation({
-    mutationFn: (issueData: {
-      title: string;
-      description: string;
-      priority: 'high' | 'medium' | 'low' | 'lowest';
-      user_id: number;
-      images: File[]; // Include images
-    }) => {
+    mutationFn: (issueData: FormData) => {
       if (issue) {
         return axios.patch(`/api/issues/${issue.id}`, issueData);
       } else {
@@ -89,11 +85,9 @@ const IssueFormComponent: React.FC<IssueFormComponentProps> = ({ issue }) => {
       }
     },
     onSuccess: ({ data }) => {
-      console.log(data)
       queryClient.invalidateQueries({ queryKey: ['issues'] });
       setLoading(false);
       toast.success(`Issue ${issue ? 'updated' : 'created'} successfully`);
-
       router.push('/issues');
       router.refresh();
     },
@@ -105,42 +99,32 @@ const IssueFormComponent: React.FC<IssueFormComponentProps> = ({ issue }) => {
     },
   });
 
-  const onSubmit = ({ title, description, priority }: IssueForm) => {
-    // Ensure images is typed correctly
-    const images: File[] | null = methods.getValues('images') || [];
+  const onSubmit = (data: IssueForm) => {
+    const images: File[] = methods.getValues('images') || [];
+    const storageType: string = methods.getValues('storageType') || 's3';
     const assignDate: string | null = methods.getValues('assignDate') || null;
     const deadlineDate: string | null = methods.getValues('deadlineDate') || null;
 
-
-    console.log(assignDate, 'asssigne date')
     const formData = new FormData();
-    formData.append('title', title);
-    formData.append('description', description);
-    formData.append('priority', priority);
-    if (assignDate) formData.append('assignDate', assignDate)
-    if (deadlineDate) formData.append('deadlineDate', deadlineDate)
-
+    formData.append('title', data.title);
+    formData.append('description', data.description);
+    formData.append('priority', data.priority);
+    formData.append('storageType', storageType);
+    if (assignDate) formData.append('assignDate', assignDate);
+    if (deadlineDate) formData.append('deadlineDate', deadlineDate);
 
     if (session?.user?.id) {
-      formData.append('user_id', String(session.user.id)); // Convert to string
+      formData.append('user_id', String(session.user.id));
     }
 
-    // Append images to FormData
     images.forEach((image) => {
       formData.append('images', image);
     });
 
     setLoading(true);
 
-    console.log('FormData entries:');
-    for (const [key, value] of formData.entries()) {
-      console.log(key, value);
-    }
-    // console.log(formData.get('assignDate'), formData.get('deadlineDate'))
-
-    mutation.mutate(formData); // Pass the correctly typed FormData
+    mutation.mutate(formData);
   };
-
 
   return (
     <FormProvider {...methods}>
@@ -157,15 +141,8 @@ const IssueFormComponent: React.FC<IssueFormComponentProps> = ({ issue }) => {
               <div className="space-y-4">
                 <div>
                   <Label htmlFor="name">Name</Label>
-                  <Input
-                    id="name"
-                    {...register('title')}
-                    type="text"
-                    className="w-full mb-3"
-                  />
-                  {errors.title && (
-                    <ErrorMessage>{errors.title.message}</ErrorMessage>
-                  )}
+                  <Input id="name" {...register('title')} type="text" className="w-full mb-3" />
+                  {errors.title && <ErrorMessage>{errors.title.message}</ErrorMessage>}
                 </div>
                 <div>
                   <Label htmlFor="description">Description</Label>
@@ -173,16 +150,10 @@ const IssueFormComponent: React.FC<IssueFormComponentProps> = ({ issue }) => {
                     name="description"
                     control={control}
                     render={({ field }) => (
-                      <SimpleMDEEditor
-                        id="description"
-                        {...field}
-                        className="dark:bg-black"
-                      />
+                      <SimpleMDEEditor id="description" {...field} className="dark:bg-black" />
                     )}
                   />
-                  {errors.description && (
-                    <ErrorMessage>{errors.description.message}</ErrorMessage>
-                  )}
+                  {errors.description && <ErrorMessage>{errors.description.message}</ErrorMessage>}
                 </div>
               </div>
             </CardContent>
@@ -190,45 +161,26 @@ const IssueFormComponent: React.FC<IssueFormComponentProps> = ({ issue }) => {
           <Card className="col-span-3">
             <CardHeader>
               <CardTitle>Due Date</CardTitle>
-              <CardDescription>
-                Select a due date for the issue
-              </CardDescription>
+              <CardDescription>Select a due date for the issue</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div>
                 <Label htmlFor="priority">Priority</Label>
-                <select
-                  id="priority"
-                  {...register('priority')}
-                  className="w-full mt-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring focus:ring-indigo-200 focus:border-indigo-300"
-                >
+                <select id="priority" {...register('priority')} className="w-full mt-1 px-3 py-2 border border-gray-300 rounded-md">
                   <option value="high">High</option>
                   <option value="medium">Medium</option>
                   <option value="low">Low</option>
                   <option value="lowest">Lowest</option>
                 </select>
-                {errors.priority && (
-                  <ErrorMessage>{errors.priority.message}</ErrorMessage>
-                )}
+                {errors.priority && <ErrorMessage>{errors.priority.message}</ErrorMessage>}
               </div>
-              {
-                issue && <AssignDate
-                  assignedDate={issue?.assignedDate}
-                  deadlineDate={issue?.deadlineDate}
-                />
-              }
+              {issue && <AssignDate assignedDate={issue?.assignedDate} deadlineDate={issue?.deadlineDate} />}
             </CardContent>
           </Card>
         </div>
-        <MultiImageUpload
-          issueImages={issue?.issueImages}
-        /> {/* Include the image upload */}
+        <MultiImageUpload issueImages={issue?.issueImages} />
         <div className="flex justify-end">
-          <Button type="submit" disabled={loading}>
-            {issue ? 'Update Issue' : 'Add Issue'}
-            {loading && <Spinner />}
-          </Button>
-
+          <Button type="submit" disabled={loading}>{issue ? 'Update Issue' : 'Add Issue'}{loading && <Spinner />}</Button>
         </div>
       </form>
     </FormProvider>

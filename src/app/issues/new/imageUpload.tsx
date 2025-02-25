@@ -4,50 +4,59 @@ import { useState, useEffect } from 'react';
 import { useFormContext } from 'react-hook-form';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { X } from 'lucide-react';
+import { X, Cloud, Server } from 'lucide-react';
 import Image from 'next/image';
+import { Switch } from '@/components/ui/switch';
 
 const MultiImageUpload: React.FC<{ issueImages?: { id: number; imageUrl: string }[] }> = ({ issueImages = [] }) => {
-    const { setValue, getValues } = useFormContext(); // Access react-hook-form context
+    const { setValue, getValues } = useFormContext();
     const [images, setImages] = useState<File[]>(getValues('images') || []);
+    const [storageType, setStorageType] = useState<string>(getValues('storageType') || 's3');
     const [existingImages, setExistingImages] = useState(issueImages || []);
 
     useEffect(() => {
-        setValue('images', images); // Ensure form state updates when images change
+        setValue('images', images);
     }, [images, setValue]);
+
+    useEffect(() => {
+        setValue('storageType', storageType);
+    }, [storageType, setValue]);
 
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const files = e.target.files;
         if (files) {
             const validImages = Array.from(files).filter((file) => file.type.startsWith('image/'));
-            const updatedImages = [...images, ...validImages];
-
-            setImages(updatedImages);
-            setValue('images', updatedImages); // Update form state
+            setImages([...images, ...validImages]);
         }
     };
 
     const handleRemoveImage = (index: number) => {
-        const updatedImages = images.filter((_, i) => i !== index);
-        setImages(updatedImages);
-        setValue('images', updatedImages); // Ensure the form state updates properly
+        setImages(images.filter((_, i) => i !== index));
     };
 
     const handleRemoveExistingImage = (id: number) => {
-        const updatedExistingImages = existingImages.filter((image) => image.id !== id);
-        setExistingImages(updatedExistingImages);
-        setValue('existingImages', updatedExistingImages); // Ensure the form state reflects the removal
+        setExistingImages(existingImages.filter((image) => image.id !== id));
     };
 
     return (
-        <Card className="p-6">
-            <CardHeader>
-                <CardTitle>Upload Images</CardTitle>
-                <CardDescription>Drag and drop images or click to upload.</CardDescription>
+        <Card className="p-6 shadow-lg border border-gray-200 rounded-xl">
+            <CardHeader className="flex flex-col gap-2">
+                <CardTitle className="text-xl font-semibold">Upload Images</CardTitle>
+                <div className="flex items-center gap-2">
+                    <Switch
+                        checked={storageType === 's3'}
+                        onCheckedChange={(checked) => setStorageType(checked ? 's3' : 'cloudinary')}
+                    />
+                    <span className="text-sm text-gray-600 flex items-center gap-1">
+                        {storageType === 's3' ? <Server size={16} /> : <Cloud size={16} />}
+                        {storageType === 's3' ? 'Amazon S3' : 'Cloudinary'}
+                    </span>
+                </div>
+                <CardDescription>Choose a storage provider and upload your images.</CardDescription>
             </CardHeader>
             <CardContent>
                 <div
-                    className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center cursor-pointer"
+                    className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center cursor-pointer hover:bg-gray-100 transition"
                     onClick={() => document.getElementById('fileUpload')?.click()}
                 >
                     <input
@@ -69,7 +78,7 @@ const MultiImageUpload: React.FC<{ issueImages?: { id: number; imageUrl: string 
                                 <Image src={image.imageUrl} alt="Existing Image" width={200} height={200} className="w-full h-full object-cover" />
                                 <button
                                     type="button"
-                                    className="absolute top-0 right-0 m-2 bg-white rounded-full p-1 shadow-lg"
+                                    className="absolute top-1 right-1 bg-white rounded-full p-1 shadow-md"
                                     onClick={() => handleRemoveExistingImage(image.id)}
                                 >
                                     <X size={18} />
@@ -87,7 +96,7 @@ const MultiImageUpload: React.FC<{ issueImages?: { id: number; imageUrl: string 
                                 <Image src={URL.createObjectURL(image)} alt={`Preview ${index + 1}`} width={200} height={200} className="w-full h-full object-cover" />
                                 <button
                                     type="button"
-                                    className="absolute top-0 right-0 m-2 bg-white rounded-full p-1 shadow-lg"
+                                    className="absolute top-1 right-1 bg-white rounded-full p-1 shadow-md"
                                     onClick={() => handleRemoveImage(index)}
                                 >
                                     <X size={18} />

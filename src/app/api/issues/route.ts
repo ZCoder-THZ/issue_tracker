@@ -1,19 +1,18 @@
-
-
-
 import { NextRequest, NextResponse } from 'next/server';
-
 import prisma from '../../../../prisma/client';
-import { uploadToS3 } from '@/lib/upload';
-import { convertToWebP } from '@/lib/imageProcessor';
 
+import { convertToWebP } from '@/lib/imageProcessor';
+import { uploadToS3 } from '@/lib/upload';
+import { uploadTOCloudinary } from '@/lib/cloudinary';
 export async function POST(request: NextRequest) {
+
   try {
     const formData = await request.formData();
     const userId = formData.get('user_id')?.toString();
     const title = formData.get('title')?.toString();
     const priority = formData.get('priority')?.toString();
     const description = formData.get('description')?.toString();
+    const stroageType = formData.get('storageType')?.toString();
     const files = formData.getAll('images');
 
     if (!userId || !title || !priority || !description) {
@@ -36,7 +35,31 @@ export async function POST(request: NextRequest) {
         }
 
         const webpBuffer = await convertToWebP(file);
-        return uploadToS3(webpBuffer, 'webp', issue.id);
+        let imageUrl = '';
+
+        if (stroageType === 's3') {
+          try {
+            imageUrl = await uploadToS3(webpBuffer, 'webp', issue.id);
+          } catch (s3Error) {
+            console.error('S3 upload failed:', s3Error);
+            throw new Error('S3 upload failed');
+          }
+        } else {
+          imageUrl = await uploadTOCloudinary(file);
+          await prisma.issueImage.create({
+            data: {
+              issueId: issue.id,
+              imageUrl,
+            },
+          })
+          if (!imageUrl) {
+            throw new Error('Cloudinary upload failed');
+          }
+        }
+
+
+
+        return imageUrl;
       })
     );
 
@@ -50,6 +73,5 @@ export async function POST(request: NextRequest) {
       { error: 'Failed to process request', details: error.message },
       { status: 500 }
     );
-
   }
 }

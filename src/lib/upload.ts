@@ -23,7 +23,7 @@ export async function uploadToS3(buffer: Buffer, format: string, issueId: string
             data: { issueId, imageUrl: fileUrl },
         });
 
-        return { fileName, url: fileUrl };
+        return fileUrl;
     } catch (error) {
         console.error(`Failed to upload ${fileName}:`, error);
         throw new Error(`S3 upload failed for ${fileName}`);
