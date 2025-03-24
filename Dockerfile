@@ -1,34 +1,51 @@
-# Use a builder stage
-FROM node:lts-alpine3.20 AS builder
+# Use the official Node.js image
+FROM node:20-alpine AS base
+
+# Install dependencies
+RUN apk add --no-cache libc6-compat openssl python3 make g++
 
 WORKDIR /app
 
-# Copy package.json and package-lock.json first for efficient caching
-COPY package*.json ./
+# Copy only package files
+COPY package.json package-lock.json* ./
 
-# Install only production dependencies
-RUN npm ci --only=production
+# Install dependencies
+RUN npm install
 
-# Copy the application source code (excluding unnecessary files)
+# Copy the rest of the app
 COPY . .
 
-# Build the application (for Next.js or similar frameworks)
+# Generate Prisma client
+RUN npx prisma generate
+
+# Build the Next.js application
 RUN npm run build
 
-# Final runtime image
-FROM node:lts-alpine3.20
-
+# Set up production image
+FROM node:20-alpine AS runner
 WORKDIR /app
-# Copy .env file for Prisma to use
-COPY .env .env
 
-# Copy only the necessary files from the builder stage
-COPY --from=builder /app/.next .next
-COPY --from=builder /app/public public
+ENV NODE_ENV=production
 
-# Expose the port your app runs on
+RUN addgroup --system --gid 1001 nodejs
+RUN adduser --system --uid 1001 nextjs
+
+# Copy necessary files from builder with correct permissions
+COPY --from=base --chown=nextjs:nodejs /app/package.json /app/package-lock.json ./
+COPY --from=base --chown=nextjs:nodejs /app/.next ./.next
+COPY --from=base --chown=nextjs:nodejs /app/node_modules ./node_modules
+COPY --from=base --chown=nextjs:nodejs /app/public ./public
+COPY --from=base --chown=nextjs:nodejs /app/prisma ./prisma
+
+# For standalone output
+RUN if [ -d /app/.next/standalone ]; then \
+    mkdir -p /app/.next/standalone/.next && \
+    chown -R nextjs:nodejs /app/.next/standalone; \
+    fi
+
+USER nextjs
+
 EXPOSE 3000
 
-# Start the application in production mode
-CMD ["npm", "run", "start"]
-
+# Use the standalone server if it exists, otherwise use normal next start
+CMD ["sh", "-c", "if [ -d .next/standalone ]; then node .next/standalone/server.js; else npm run start; fi"]

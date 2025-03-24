@@ -1,24 +1,41 @@
 version: '3.8'
 
 services:
+  postgres_container:
+    image: postgres:16.8-alpine3.20
+    container_name: postgres_container
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: secret
+      POSTGRES_DB: issue_tracker
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U admin -d issue_tracker"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
   app:
     build:
       context: .
       dockerfile: Dockerfile
     container_name: node_app_container
+    working_dir: /app
     volumes:
       - .:/app
-      - /app/node_modules
     ports:
       - "3000:3000"
-    environment:
-      NODE_ENV: development
-      DATABASE_URL: mysql://root:secret@mysql_container:3306/ssscia
-    command: ["npm", "run", "dev"]
+    env_file:
+      - .env
+    command: ["sh", "-c", "npm run dev"]
     restart: unless-stopped
-    networks:
-      - docker_net #add network
+    depends_on:
+      postgres_container:
+        condition: service_healthy
 
-networks:
-  docker_net:
-    external: true
+volumes:
+  postgres_data:

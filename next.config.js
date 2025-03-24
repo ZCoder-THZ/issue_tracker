@@ -1,5 +1,6 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  output: 'standalone',
   webpack(config) {
     // Add any custom Webpack configuration here if necessary
     return config;
