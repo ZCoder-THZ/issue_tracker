@@ -1,60 +1,79 @@
-'use client';
-import React from 'react';
-import { useQuery } from '@tanstack/react-query';
-import axios from 'axios';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
-import { Bell } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+// components/NotificationDropdown.tsx
+import { Bell, CheckCircle } from 'lucide-react';
+import { Button } from './ui/button';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from './ui/dropdown-menu';
+import { Badge } from './ui/badge';
 
-export const dynamic = 'force-dynamic';
+import Link from 'next/link';
 
-function Notification({ userId }) {
-  const { data, isLoading } = useQuery({
-    queryKey: [`notifications`, userId],
-    queryFn: fetchNotifications,
-    refetchInterval: 5000, // Refetch every 5 seconds
-  });
-  console.log(data);
-  async function fetchNotifications() {
-    const response = await axios.get('/api/profile/notifications/' + userId);
-    return response.data.notifications;
-  }
+export default function NotificationDropdown() {
+
+
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button
-          variant="secondary"
-          size="icon"
-          className="relative rounded-full"
-        >
-          <Bell />
-
-          <span className="absolute top-0 right-0 inline-flex items-center justify-center px-2 py-1 text-xs font-bold leading-none text-white bg-red-600 rounded-full transform translate-x-1/2 -translate-y-1/2">
-            {isLoading ? 0 : data?.length}
-          </span>
+        <Button variant="ghost" size="icon" className="relative">
+          <Bell className="h-5 w-5" />
+          {unreadCount > 0 && (
+            <Badge
+              variant="destructive"
+              className="absolute -right-1 -top-1 h-5 w-5 rounded-full p-0 flex items-center justify-center"
+            >
+              {unreadCount}
+            </Badge>
+          )}
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end">
-        <DropdownMenuLabel>Notifications</DropdownMenuLabel>
+      <DropdownMenuContent className="w-96 max-h-[80vh] overflow-y-auto" align="end">
+        <DropdownMenuLabel className="flex justify-between items-center">
+          <span>Notifications</span>
+          {unreadCount > 0 && (
+            <button
+              onClick={markAllAsRead}
+              className="text-xs text-primary hover:underline"
+            >
+              Mark all as read
+            </button>
+          )}
+        </DropdownMenuLabel>
         <DropdownMenuSeparator />
-        {data?.map((item) => (
-          <DropdownMenuItem key={item.id}>{item.message}</DropdownMenuItem>
-        ))}{' '}
-        {/* {data?.map((item) => (
-          <DropdownMenuItem key={item.id}>{item.title}</DropdownMenuItem>
-        ))} */}
-        <DropdownMenuSeparator />
-        <DropdownMenuItem></DropdownMenuItem>
+
+        {notifications.length === 0 ? (
+          <DropdownMenuItem className="text-muted-foreground justify-center py-4">
+            No notifications
+          </DropdownMenuItem>
+        ) : (
+          notifications.map(notification => (
+            <DropdownMenuItem
+              key={notification.id}
+              className={`flex flex-col items-start gap-1 py-3 ${!notification.read ? 'bg-accent/50' : ''}`}
+              onClick={() => markAsRead(notification.id)}
+            >
+              <div className="flex justify-between w-full">
+                <span className="font-medium">{notification.title}</span>
+                {!notification.read && (
+                  <span className="text-xs text-primary">New</span>
+                )}
+              </div>
+              <p className="text-sm">{notification.message}</p>
+
+              {notification.issue && (
+                <Link
+                  href={`/issues/${notification.issue.id}`}
+                  className="text-xs text-primary hover:underline mt-1"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  View Issue: {notification.issue.title}
+                </Link>
+              )}
+
+              <div className="text-xs text-muted-foreground mt-1">
+                {new Date(notification.createdAt).toLocaleString()}
+              </div>
+            </DropdownMenuItem>
+          ))
+        )}
       </DropdownMenuContent>
     </DropdownMenu>
   );
 }
-
-export default Notification;

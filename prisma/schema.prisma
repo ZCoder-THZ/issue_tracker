@@ -1,5 +1,5 @@
 generator client {
-  provider = "prisma-client-js"
+  provider      = "prisma-client-js"
   binaryTargets = ["native"]
 }
 
@@ -40,19 +40,19 @@ model Session {
 }
 
 model User {
-  id             String          @id @default(cuid())
+  id             String         @id @default(cuid())
   name           String?
-  email          String?         @unique
+  email          String?        @unique
   emailVerified  DateTime?
   image          String?
-  role           Int             @default(0)
+  role           Int            @default(0)
   password       String?
   accounts       Account[]
-  assignedIssues Issue[]         @relation("UserAssignedIssues")
-  issues         Issue[]         @relation("UserIssues")
-  sessions       Session[]
-  notifications  Notification[]
   issueCommands  IssueCommand[]
+  assignedIssues Issue[]        @relation("UserAssignedIssues")
+  issues         Issue[]        @relation("UserIssues")
+  notifications  Notification[]
+  sessions       Session[]
 
   @@map("users")
 }
@@ -67,22 +67,22 @@ model VerificationToken {
 }
 
 model Issue {
-  id               Int             @id @default(autoincrement())
+  id               Int            @id @default(autoincrement())
   title            String
   description      String
-  status           IssueStatus     @default(OPEN)
-  priority         IssuePriority   @default(low)
+  status           IssueStatus    @default(OPEN)
+  priority         IssuePriority  @default(low)
   assignedDate     DateTime?
   deadlineDate     DateTime?
-  createdAt        DateTime        @default(now())
-  updatedAt        DateTime        @updatedAt
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @updatedAt
   userId           String
   assignedToUserId String?
-  assignedToUser   User?           @relation("UserAssignedIssues", fields: [assignedToUserId], references: [id])
-  user             User            @relation("UserIssues", fields: [userId], references: [id])
-  notifications    Notification[]
   issueCommands    IssueCommand[]
   issueImages      IssueImage[]
+  assignedToUser   User?          @relation("UserAssignedIssues", fields: [assignedToUserId], references: [id])
+  user             User           @relation("UserIssues", fields: [userId], references: [id])
+  notifications    Notification[]
 
   @@index([userId])
   @@index([assignedToUserId])
@@ -100,14 +100,17 @@ model IssueImage {
 }
 
 model Notification {
-  id        Int      @id @default(autoincrement())
+  id        String   @id
   message   String
   type      String
   createdAt DateTime @default(now())
   userId    String
-  issueId   Int
+  issueId   Int?
+  delivered Boolean  @default(false)
+  read      Boolean  @default(false)
+  title     String
+  issue     Issue?   @relation(fields: [issueId], references: [id], onDelete: Cascade)
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  issue     Issue    @relation(fields: [issueId], references: [id], onDelete: Cascade)
 
   @@index([userId])
   @@index([issueId])
@@ -115,15 +118,15 @@ model Notification {
 }
 
 model IssueCommand {
-  id          Int      @id @default(autoincrement())
-  issueId     Int
-  userId      String
-  timestamp   DateTime @default(now())
-  text        String
-  likes       Int      @default(0)
-  replies     Json     @default("[]")
-  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  issue       Issue    @relation(fields: [issueId], references: [id], onDelete: Cascade)
+  id        Int      @id @default(autoincrement())
+  issueId   Int
+  userId    String
+  timestamp DateTime @default(now())
+  text      String
+  likes     Int      @default(0)
+  replies   Json     @default("[]")
+  issue     Issue    @relation(fields: [issueId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([issueId])
   @@index([userId])

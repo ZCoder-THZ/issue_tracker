@@ -1,12 +1,18 @@
-"use client"
-import Link from 'next/link';
-import { useState } from 'react';
+"use client";
+import Link from "next/link";
+import { useState } from "react";
+import { Bell, UserCircle } from "lucide-react"; // Optional: install lucide-react for nice icons
 
 const Navbar = () => {
     const [isOpen, setIsOpen] = useState(false);
+    const [showNotifications, setShowNotifications] = useState(false);
 
     const toggleMenu = () => {
         setIsOpen(!isOpen);
+    };
+
+    const toggleNotifications = () => {
+        setShowNotifications(!showNotifications);
     };
 
     return (
@@ -18,7 +24,7 @@ const Navbar = () => {
                 </Link>
 
                 {/* Desktop Menu */}
-                <div className="hidden md:flex space-x-4">
+                <div className="hidden md:flex items-center space-x-6">
                     <Link href="/" className="text-white hover:text-gray-400">
                         Home
                     </Link>
@@ -31,6 +37,28 @@ const Navbar = () => {
                     <Link href="/contact" className="text-white hover:text-gray-400">
                         Contact
                     </Link>
+
+                    {/* Notification Bell */}
+                    <div className="relative">
+                        <button
+                            onClick={toggleNotifications}
+                            className="text-white focus:outline-none"
+                        >
+                            <Bell className="w-6 h-6" /> this is fucking bell
+                        </button>
+
+                        {showNotifications && (
+                            <div className="absolute right-0 mt-2 w-64 bg-white rounded-md shadow-lg overflow-hidden z-20">
+                                <div className="p-4 text-gray-800 font-semibold border-b">Notifications</div>
+                                <div className="p-4 text-gray-600">No new notifications.</div>
+                            </div>
+                        )}
+                    </div>
+
+                    {/* Profile Icon */}
+                    <button className="text-white focus:outline-none">
+                        <UserCircle className="w-8 h-8" />
+                    </button>
                 </div>
 
                 {/* Mobile Menu Button */}
@@ -43,7 +71,6 @@ const Navbar = () => {
                         fill="none"
                         stroke="currentColor"
                         viewBox="0 0 24 24"
-                        xmlns="http://www.w3.org/2000/svg"
                     >
                         <path
                             strokeLinecap="round"

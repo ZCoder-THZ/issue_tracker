@@ -11,6 +11,7 @@ import Provider from '@/providers/provider';
 import 'react-toastify/dist/ReactToastify.css';
 
 import { ToastContainer } from 'react-toastify';
+import SocketSessionHandler from '@/lib/SocketSessionHandler';
 // import 'react-toastify/dist/ReactToastify.css';
 
 export const metadata: Metadata = {
@@ -32,7 +33,7 @@ export default function RootLayout({
           <Theme>
             <Navbar />
             <ToastContainer />
-
+            <SocketSessionHandler />
             <main className="p-5">{children}</main>
           </Theme>
         </Provider>

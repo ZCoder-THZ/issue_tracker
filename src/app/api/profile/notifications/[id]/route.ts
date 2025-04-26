@@ -12,6 +12,6 @@ export const GET = async (request: NextRequest, props: { params: Promise<{ id: s
     revalidateTag('notifications' + params.id);
     return NextResponse.json({ notifications });
   } catch (error) {
-    return NextResponse.json({ error: error.message });
+    return NextResponse.json(error)
   }
 };

@@ -23,19 +23,16 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: node_app_container
-    working_dir: /app
-    volumes:
-      - .:/app
-    ports:
-      - "3000:3000"
-    env_file:
-      - .env
-    command: ["sh", "-c", "npm run dev"]
-    restart: unless-stopped
+    image: app-image
+    container_name: app_container
     depends_on:
       postgres_container:
         condition: service_healthy
+    environment:
+      DATABASE_URL: postgres://admin:secret@postgres_container:5432/issue_tracker
+    ports:
+      - "3000:3000"
+    command: ["sh", "-c", "npm start"]
 
 volumes:
   postgres_data:
