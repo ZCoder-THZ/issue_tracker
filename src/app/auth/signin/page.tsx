@@ -3,8 +3,9 @@
 import { signIn, useSession } from 'next-auth/react';
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import delay from 'delay';
-import classNames from 'classnames';
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import * as z from "zod";
 import {
   Card,
   CardHeader,
@@ -12,26 +13,63 @@ import {
   CardDescription,
   CardContent,
 } from '@/components/ui/card';
-import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
-import styles from './signin.module.css';
 import { ClipLoader } from 'react-spinners';
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 
-export default function Component() {
+// Define validation schema
+const formSchema = z.object({
+  email: z.string().email("Invalid email address"),
+  password: z.string().min(6, "Password must be at least 6 characters")
+});
+
+export default function SignInPage() {
   const { data: session, status } = useSession();
   const [isLoading, setIsLoading] = useState(false);
-
   const router = useRouter();
 
-  // handle the login if authenticated after login redirect to homepage
+  // Initialize react-hook-form
+  const form = useForm<z.infer<typeof formSchema>>({
+    resolver: zodResolver(formSchema),
+    defaultValues: {
+      email: "",
+      password: ""
+    }
+  });
+
+  // Handle redirect if authenticated
   useEffect(() => {
     if (status === 'authenticated') {
       setIsLoading(true);
-      router.push('/'); // Redirect to homepage after sign-in
+      router.push('/');
     }
   }, [status, router]);
+
+  // Form submit handler
+  const onSubmit = async (values: z.infer<typeof formSchema>) => {
+    setIsLoading(true);
+    try {
+      const result = await signIn('credentials', {
+        redirect: false,
+        email: values.email,
+        password: values.password
+      });
+
+      if (result?.error) {
+        form.setError("root", {
+          message: result.error
+        });
+      }
+    } catch (error) {
+      form.setError("root", {
+        message: "An unexpected error occurred"
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   if (status === 'authenticated') {
     return (
@@ -40,15 +78,7 @@ export default function Component() {
       </div>
     );
   }
-  const loginHandler = async (event: React.FormEvent) => {
-    event.preventDefault();
-    const data = new FormData(event.target);
 
-    const email = data.get('email') as string;
-    const password = data.get('password') as string;
-    await signIn('credentials', { email, password });
-    // router.refresh();
-  };
   return (
     <div>
       {status === 'unauthenticated' && (
@@ -60,27 +90,50 @@ export default function Component() {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="grid gap-4">
-              <form onSubmit={loginHandler}>
-                <div className="grid gap-2">
-                  <Label className="mt-3" htmlFor="email">
-                    Email
-                  </Label>
-                  <Input
-                    name="email"
-                    id="email"
-                    type="email"
-                    placeholder="m@example.com"
-                  />
-                </div>
-                <div className="grid gap-2 mb-3">
-                  <div className="flex items-center">
-                    <Label className="mt-3" htmlFor="password">
-                      Password
-                    </Label>
-                  </div>
-                  <Input id="password" type="password" name="password" />
-                </div>
+            <Form {...form}>
+              <form onSubmit={form.handleSubmit(onSubmit)} className="grid gap-4">
+                {form.formState.errors.root && (
+                  <p className="text-sm font-medium text-destructive">
+                    {form.formState.errors.root.message}
+                  </p>
+                )}
+
+                <FormField
+                  control={form.control}
+                  name="email"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Email</FormLabel>
+                      <FormControl>
+                        <Input
+                          placeholder="m@example.com"
+                          {...field}
+                          disabled={isLoading}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="password"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Password</FormLabel>
+                      <FormControl>
+                        <Input
+                          type="password"
+                          {...field}
+                          disabled={isLoading}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
                 <Link
                   href="#"
                   className="ml-auto inline-block text-sm underline"
@@ -88,21 +141,34 @@ export default function Component() {
                 >
                   Forgot your password?
                 </Link>
-                <Button type="submit" className="w-full">
-                  Login
+
+                <Button type="submit" disabled={isLoading}>
+                  {isLoading ? <ClipLoader size={20} color="#ffffff" /> : "Login"}
                 </Button>
               </form>
-              <Button
-                variant="outline"
-                className={classNames(
-                  styles.googleButton,
-                  styles.googleButtonHover
-                )}
-                onClick={() => signIn('google')}
-              >
-                Login with Google
-              </Button>
+            </Form>
+
+            <div className="relative my-4">
+              <div className="absolute inset-0 flex items-center">
+                <span className="w-full border-t" />
+              </div>
+              <div className="relative flex justify-center text-xs uppercase">
+                <span className="bg-background px-2 text-muted-foreground">
+                  Or continue with
+                </span>
+              </div>
             </div>
+
+            <Button
+              variant="outline"
+              type="button"
+              disabled={isLoading}
+              onClick={() => signIn('google')}
+              className="w-full"
+            >
+              Google
+            </Button>
+
             <div className="mt-4 text-center text-sm">
               Don&apos;t have an account?{' '}
               <Link
