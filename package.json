@@ -79,6 +79,7 @@
     "zustand": "^5.0.3"
   },
   "devDependencies": {
+    "@types/bcrypt": "^5.0.2",
     "@types/bcryptjs": "^3.0.0",
     "@types/node": "20.12.12",
     "bcryptjs": "^2.4.3",

@@ -27,7 +27,7 @@ function NotificationPage() {
       <div className="mb-4">
 
         <button
-          onClick={handleSendNotification}
+
           className="px-4 py-2 bg-blue-600 text-white rounded mt-2"
         >
           Send Test Notification

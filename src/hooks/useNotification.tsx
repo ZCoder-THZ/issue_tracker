@@ -5,7 +5,10 @@ import { useEffect, useState } from 'react';
 import { useSession } from 'next-auth/react';
 import { useSocketStore } from '@/stores/socketStore';
 import { toast } from "react-toastify";
-
+type Issue = {
+    id: number;
+    title: string;
+};
 interface Notification {
     id: number;
     title: string;
@@ -15,6 +18,7 @@ interface Notification {
     senderId: string,
     createdAt: string;
     type?: string;
+    issue?: Issue
 }
 function useNotification() {
     const socket = useSocketStore((state) => state.socket);
@@ -41,7 +45,7 @@ function useNotification() {
         }
     };
 
-    const markAsRead = (notificationId: string) => {
+    const markAsRead = (notificationId: number) => {
         socket?.emit(
             "mark-as-read",
             notificationId,

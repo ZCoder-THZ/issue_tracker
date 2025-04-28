@@ -38,18 +38,6 @@ const links = [
   },
 ];
 
-type Notification = {
-  id: string;
-  title: string;
-  message: string;
-  read: boolean;
-  createdAt: string;
-  type?: string;
-  issue?: {
-    id: number;
-    title: string;
-  };
-};
 
 export default function Dashboard() {
   const { status, data: session } = useSession();
@@ -60,7 +48,7 @@ export default function Dashboard() {
   useEffect(() => {
     if (!socket || !session?.user?.id) return;
 
-
+    console.log(session, 'session')
     getNotifications()
 
   }, [socket, session]);
