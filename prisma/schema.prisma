@@ -1,6 +1,5 @@
 generator client {
-  provider      = "prisma-client-js"
-  binaryTargets = ["native"]
+  provider = "prisma-client-js"
 }
 
 datasource db {
@@ -40,19 +39,20 @@ model Session {
 }
 
 model User {
-  id             String         @id @default(cuid())
-  name           String?
-  email          String?        @unique
-  emailVerified  DateTime?
-  image          String?
-  role           Int            @default(0)
-  password       String?
-  accounts       Account[]
-  issueCommands  IssueCommand[]
-  assignedIssues Issue[]        @relation("UserAssignedIssues")
-  issues         Issue[]        @relation("UserIssues")
-  notifications  Notification[]
-  sessions       Session[]
+  id                    String         @id @default(cuid())
+  name                  String?
+  email                 String?        @unique
+  emailVerified         DateTime?
+  image                 String?
+  role                  Int            @default(0)
+  password              String?
+  accounts              Account[]
+  issueCommands         IssueCommand[]
+  assignedIssues        Issue[]        @relation("UserAssignedIssues")
+  issues                Issue[]        @relation("UserIssues")
+  sentNotifications     Notification[] @relation("NotificationSender")
+  receivedNotifications Notification[] @relation("NotificationReceiver")
+  sessions              Session[]
 
   @@map("users")
 }
@@ -100,20 +100,23 @@ model IssueImage {
 }
 
 model Notification {
-  id        String   @id
+  id        Int      @id @default(autoincrement())
   message   String
   type      String
   createdAt DateTime @default(now())
   userId    String
   issueId   Int?
-  delivered Boolean  @default(false)
   read      Boolean  @default(false)
+  senderId  String
   title     String
   issue     Issue?   @relation(fields: [issueId], references: [id], onDelete: Cascade)
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  sender    User     @relation("NotificationSender", fields: [senderId], references: [id], onDelete: Cascade)
+  receiver  User     @relation("NotificationReceiver", fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
+  @@index([senderId])
   @@index([issueId])
+  @@index([read])
   @@map("notifications")
 }
 

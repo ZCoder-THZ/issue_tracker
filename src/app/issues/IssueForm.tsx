@@ -20,6 +20,8 @@ import 'easymde/dist/easymde.min.css';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
+import useNotification from '@/hooks/useNotification';
+import { useSocketStore } from '@/stores/socketStore';
 import {
   Controller,
   FormProvider,
@@ -49,7 +51,8 @@ const IssueFormComponent: React.FC<IssueFormComponentProps> = ({ issue }) => {
   const { data: session } = useSession();
   const router = useRouter();
   const [loading, setLoading] = useState(false);
-
+  const { socket } = useSocketStore();
+  const { handleSendNotification } = useNotification()
   const methods = useForm<IssueForm>({
     resolver: zodResolver(createIssueSchema),
     defaultValues: {
@@ -86,10 +89,23 @@ const IssueFormComponent: React.FC<IssueFormComponentProps> = ({ issue }) => {
     },
     onSuccess: ({ data }) => {
       queryClient.invalidateQueries({ queryKey: ['issues'] });
+      if (socket) {
+        handleSendNotification({
+          id: data.id,
+          title: 'New Issue',
+          message: `${session?.user?.name} have  created a new issue ${data.title}`,
+          type: 'issue',
+          read: false,
+          senderId: session?.user?.id,
+          userId: 'cm9zm65va0001i0lt3fx37yl6',
+          createdAt: Date.now().toString()
+        })
+      }
       setLoading(false);
       toast.success(`Issue ${issue ? 'updated' : 'created'} successfully`);
       router.push('/issues');
       router.refresh();
+
     },
     onError: (error) => {
       if (error instanceof Error) {

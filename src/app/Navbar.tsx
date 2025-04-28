@@ -21,6 +21,8 @@ import {
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { Badge } from '@/components/ui/badge';
 
+import useNotification from '@/hooks/useNotification';
+
 const links = [
   {
     name: 'Dashboard',
@@ -53,60 +55,19 @@ export default function Dashboard() {
   const { status, data: session } = useSession();
   const currentPath = usePathname();
   const { socket } = useSocketStore();
-  const [notifications, setNotifications] = useState<Notification[]>([]);
-  const [unreadCount, setUnreadCount] = useState(0);
+  const { notifications, getNotifications, markAsRead, markAllAsRead, unreadCount, } = useNotification()
 
   useEffect(() => {
     if (!socket || !session?.user?.id) return;
 
-    // Initial fetch of notifications
-    socket.emit("get-notifications", (response: { success: boolean; notifications: Notification[] }) => {
-      if (response.success) {
-        setNotifications(response.notifications);
-        setUnreadCount(response.notifications.filter(n => !n.read).length);
-      }
-    });
 
-    // Listen for new notifications
-    const handleNewNotification = (notification: Notification) => {
-      setNotifications(prev => [notification, ...prev]);
-      setUnreadCount(prev => prev + 1);
-    };
+    getNotifications()
 
-    socket.on("new-notification", handleNewNotification);
-
-    return () => {
-      socket.off("new-notification", handleNewNotification);
-    };
   }, [socket, session]);
 
-  const markAsRead = (notificationId: string) => {
-    if (!socket) return;
 
-    socket.emit("mark-as-read", notificationId, (response: { success: boolean }) => {
-      if (response.success) {
-        setNotifications(prev =>
-          prev.map(n =>
-            n.id === notificationId ? { ...n, read: true } : n
-          )
-        );
-        setUnreadCount(prev => Math.max(0, prev - 1));
-      }
-    });
-  };
 
-  const markAllAsRead = () => {
-    if (!socket || !session?.user?.id) return;
 
-    socket.emit("mark-all-read", (response: { success: boolean }) => {
-      if (response.success) {
-        setNotifications(prev =>
-          prev.map(n => ({ ...n, read: true }))
-        );
-        setUnreadCount(0);
-      }
-    });
-  };
 
   return (
     <div className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">

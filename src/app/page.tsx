@@ -1,45 +1,67 @@
-'use client';
+"use client";
 
-import { useEffect } from 'react';
-import { useSocketStore } from '@/stores/socketStore';
+import { useEffect, useState } from "react";
+import { useSocketStore } from "@/stores/socketStore";
+import { useSession } from "next-auth/react";
+import useNotification from "../hooks/useNotification";
 
-function Page() {
+
+function NotificationPage() {
   const socket = useSocketStore((state) => state.socket);
+  const { data: session } = useSession();
+  const { getNotifications, notifications, handleSendNotification } = useNotification();
 
+  // Fetch initial notifications
   useEffect(() => {
-    if (!socket) return;
+    if (!socket || !session?.user?.id) return;
 
-    // Listen for admin notifications from server
-    socket.on('admin-notification', (data) => {   // <-- fixed event name
-      console.log('Received admin notification:', data);
-      alert(`New Admin Notification: ${data.message}`);
-    });
+    getNotifications()
+  }, [socket, session]);
 
-    return () => {
-      socket.off('admin-notification');  // <-- fixed event name
-    };
-  }, [socket]);
 
-  const handleSendNotification = () => {
-    console.log('Clicking send notification')
-    socket?.emit('send-admin-notification', {  // <-- fixed event name
-      message: 'Test Notification from frontend'
-    });
-  };
+
 
   return (
     <div className="container mx-auto p-4">
-      <h1 className="text-xl font-bold mb-4">Admin Notifications Testing</h1>
-      <p>Listening for admin notifications...</p>
+      <h1 className="text-xl font-bold mb-4">Notifications</h1>
+      <div className="mb-4">
 
-      <button
-        onClick={handleSendNotification}
-        className="px-4 py-2 bg-blue-600 text-white rounded"
-      >
-        Send Notification Request
-      </button>
+        <button
+          onClick={handleSendNotification}
+          className="px-4 py-2 bg-blue-600 text-white rounded mt-2"
+        >
+          Send Test Notification
+        </button>
+      </div>
+
+      <div className="space-y-4">
+        {notifications.length === 0 ? (
+          <p>No notifications yet</p>
+        ) : (
+          notifications.map((notification) => (
+            <div
+              key={notification.id}
+              className={`p-4 border rounded ${!notification.read ? "bg-blue-50" : "bg-white"}`}
+            // onClick={() => !notification.read && markAsRead(notification.id)}
+
+
+            >
+              <div className="flex justify-between">
+                <h3 className="font-medium">Noti Title{notification.title}</h3>
+                {!notification.read && (
+                  <span className="text-xs text-blue-600">NEW</span>
+                )}
+              </div>
+              <p className="text-sm text-gray-600">{notification.message}</p>
+              <p className="text-xs text-gray-500 mt-1">
+                {new Date(notification.createdAt).toLocaleString()}
+              </p>
+            </div>
+          ))
+        )}
+      </div>
     </div>
   );
 }
 
-export default Page;
+export default NotificationPage;

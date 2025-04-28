@@ -61,8 +61,8 @@ export default function AssignDates({
   assignedDate,
   deadlineDate,
 }: {
-  assignedDate?: Date;
-  deadlineDate?: Date;
+  assignedDate?: Date | null;
+  deadlineDate?: Date | null;
 }) {
   return (
     <div className="flex flex-col gap-4">
