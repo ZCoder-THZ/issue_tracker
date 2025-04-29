@@ -3,7 +3,7 @@
 import { ColumnDef } from "@tanstack/react-table"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { getRole } from "@/lib/utils"
-
+import { useSession } from "next-auth/react"
 import { toast } from "react-toastify"
 import Link from "next/link"
 import { MoreHorizontal } from "lucide-react"
@@ -17,6 +17,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { Button } from "@/components/ui/button"
+import useNotification from "@/hooks/useNotification"
 type Developer = {
   id: string
   name: string
@@ -67,7 +68,7 @@ export const getColumns = ({ handleRoleChange }: ColumnProps): ColumnDef<Develop
             </DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem>
-              <Link href={`/devs/${row.getValue('id')}`}>View customer</Link>
+              <Link href={`/devs/${devs.id}`}>View customer</Link>
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
@@ -80,11 +81,31 @@ export const getColumns = ({ handleRoleChange }: ColumnProps): ColumnDef<Develop
     cell: ({ row }) => {
       const dev = row.original
       const roleValue = String(dev.role ?? "0")
-
+      const { handleSendNotification } = useNotification()
+      const { data: session } = useSession()
       return (
         <Select
           value={roleValue}
-          onValueChange={(value) => handleRoleChange(dev.id, value)}
+          onValueChange={(value) => {
+            try {
+              handleSendNotification({
+                id: Math.random() ** 2,
+                userId: dev.id,
+                title: "role_change",
+                message: `${dev.name} role changed to ${getRole(value)}`,
+                type: "role_change",
+                read: false,
+                senderId: session?.user?.id,
+                createdAt: new Date().toISOString(),
+              })
+              handleRoleChange(dev.id, value)
+              console.log(dev.id)
+            } catch (error) {
+              console.log(error)
+
+            }
+          }
+          }
         >
           <SelectTrigger className="min-w-[120px]">
             <SelectValue placeholder={getRole(roleValue)} />
@@ -93,6 +114,8 @@ export const getColumns = ({ handleRoleChange }: ColumnProps): ColumnDef<Develop
             <SelectItem value="0">Tester</SelectItem>
             <SelectItem value="1">Developer</SelectItem>
             <SelectItem value="2">Admin</SelectItem>
+
+
           </SelectContent>
         </Select>
       )

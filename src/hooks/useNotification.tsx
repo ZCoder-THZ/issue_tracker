@@ -10,7 +10,7 @@ type Issue = {
     title: string;
 };
 interface Notification {
-    id: number;
+    id: number | null;
     title: string;
     message: string;
     read: boolean;
@@ -36,6 +36,7 @@ function useNotification() {
             }
         });
     }
+
     const handleSendNotification = (data: Notification) => {
         try {
             socket?.emit("send-admin-notification", data);

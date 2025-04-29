@@ -184,7 +184,7 @@ const IssueFormComponent: React.FC<IssueFormComponentProps> = ({ issue }) => {
           id: data.id,
           title: issue ? 'Issue Updated' : 'New Issue',
           message: `${session.user.name} ${issue ? 'updated' : 'created'} an issue: ${data.title}`,
-          type: 'issue',
+          type: 'issue_creation',
           read: false,
           senderId: session.user.id,
           userId: data.assignedToUserId || 'default-user-id',
