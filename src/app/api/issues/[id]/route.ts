@@ -52,7 +52,7 @@ export async function PATCH(request: NextRequest, props: { params: Promise<{ id:
           await prisma.issueImage.deleteMany({ where: { issueId, imageUrl } });
         } catch (deleteError) {
           console.error('Failed to delete image:', deleteError);
-          // Continue even if deletion fails
+
         }
       }
     }
@@ -121,5 +121,17 @@ export async function PATCH(request: NextRequest, props: { params: Promise<{ id:
   } catch (error) {
     console.error('Error updating issue:', error);
     return NextResponse.json({ error: 'Failed to update issue' }, { status: 500 });
+  }
+}
+
+export async function DELETE(request: NextRequest, props: { params: Promise<{ id: number }> }) {
+  const params = await props.params;
+  try {
+    const issueId = Number(params.id);
+    const deletedIssue = await prisma.issue.delete({ where: { id: issueId } });
+    return NextResponse.json({ message: 'Issue deleted successfully', issue: deletedIssue });
+  } catch (error) {
+    console.error('Error deleting issue:', error);
+    return NextResponse.json({ error: 'Failed to delete issue' }, { status: 500 });
   }
 }

@@ -28,9 +28,9 @@ function DeleteIssue({ issueId }: { issueId: number }) {
   }, []);
 
   const deleteIssueMutation = useMutation({
-    mutationFn: (id) => axios.delete(`/api/issues/${id}`),
+    mutationFn: (id: number) => axios.delete(`/api/issues/${id}`),
     onSuccess: () => {
-      queryClient.invalidateQueries(['issues']);
+      queryClient.invalidateQueries({ queryKey: ['issues'] });
       router.refresh();
       toast.success('Issue deleted successfully');
     },

@@ -7,28 +7,17 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
-interface Role {
-  role: number;
-}
-
-const roles = [
-  {
-    role: 0,
-    name: 'Tester',
-  },
-  {
-    role: 1,
-    name: 'Developer',
-  },
-  {
-    role: 2,
-    name: 'Admin',
-  },
-];
-
-export function getRole(roleId: number) {
-  const foundRole = roles.find((role) => role.role === roleId);
-  return foundRole ? foundRole.name : 'Role not found';
+export function getRole(role: string | number): string {
+  switch (String(role)) {
+    case "0":
+      return "Tester"
+    case "1":
+      return "Developer"
+    case "2":
+      return "Admin"
+    default:
+      return "Unknown"
+  }
 }
 
 export const s3Client = new S3Client({
