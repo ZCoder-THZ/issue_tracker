@@ -2,7 +2,7 @@ import React from 'react';
 import IssueFormComponent from '../../IssueForm';
 import prisma from '../../../../../prisma/client';
 import dynamic from 'next/dynamic';
-import SelectAction from '../../SelectAction';
+import SelectAction from '../../components/SelectAction';
 const IssueForm = dynamic(() => import('../../IssueForm'), {
   ssr: false,
 });
@@ -31,7 +31,7 @@ async function page(props: Props) {
           <IssueForm issue={issue} />
         </div>
         <div className="h-40">
-          <SelectAction issue={issue} />
+          {/* <SelectAction issue={issue} /> */}
         </div>
       </div>
     </div>

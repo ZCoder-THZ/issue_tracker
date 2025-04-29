@@ -30,7 +30,8 @@ export async function PATCH(request: NextRequest, props: { params: Promise<{ id:
     const description = formData.get('description')?.toString();
     const assignDate = formData.get('assignDate')?.toString();
     const deadlineDate = formData.get('deadlineDate')?.toString();
-
+    const status = formData.get('status')?.toString();
+    const assignedUserId = formData.get('assignedToUserId')?.toString();
     const files = formData.getAll('images') as File[];
     const deleteImages = JSON.parse(formData.get('delete_images') as string || '[]');
 
@@ -104,6 +105,8 @@ export async function PATCH(request: NextRequest, props: { params: Promise<{ id:
         title,
         description,
         priority,
+        assignedToUserId: assignedUserId,
+        status,
         assignedDate, // Updated date
         deadlineDate: deadlineDateISO, // Updated date
       },

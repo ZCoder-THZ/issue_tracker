@@ -1,39 +1,52 @@
 'use client';
 
-import { createIssueSchema } from '@/app/validationSchemas';
-import ErrorMessage from '@/components/ErrorMessage';
+import { useEffect } from 'react';
+import { useForm, Controller, FormProvider, useFormContext } from 'react-hook-form';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
+import axios from 'axios';
+import { useRouter } from 'next/navigation';
+import { useSession } from 'next-auth/react';
+import { toast } from 'react-toastify';
+import { format } from 'date-fns';
+import { Calendar as CalendarIcon } from 'lucide-react';
+
+import { useSocketStore } from '@/stores/socketStore';
+import useNotification from '@/hooks/useNotification';
+
 import Spinner from '@/components/Spinner';
+import ErrorMessage from '@/components/ErrorMessage';
 import { Button } from '@/components/ui/button';
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
-import axios from 'axios';
-import 'easymde/dist/easymde.min.css';
-import { useSession } from 'next-auth/react';
-import { useRouter } from 'next/navigation';
-import { useEffect, useState } from 'react';
-import useNotification from '@/hooks/useNotification';
-import { useSocketStore } from '@/stores/socketStore';
-import {
-  Controller,
-  FormProvider,
-  useForm,
-} from 'react-hook-form';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Calendar } from '@/components/ui/calendar';
+import { cn } from '@/lib/utils';
+
 import SimpleMDEEditor from 'react-simplemde-editor';
-import { toast } from 'react-toastify';
-import { z } from 'zod';
-import AssignDate from './DatePicker';
 import MultiImageUpload from './new/imageUpload';
 
+import 'easymde/dist/easymde.min.css';
+
+const createIssueSchema = z.object({
+  title: z.string().min(1, { message: 'Title is required' }).max(255),
+  description: z.string().min(1, { message: 'Description is required' }).max(65535),
+  assignedToUserId: z.string().min(1, { message: 'Assigned User is required' }).max(255).optional().nullable(),
+  priority: z.enum(['high', 'medium', 'low', 'lowest']).optional(),
+  images: z.any().optional(),
+  storageType: z.string().optional().default('s3'),
+  assignDate: z.string().optional().nullable(),
+  deadlineDate: z.string().optional().nullable(),
+  status: z.enum(['OPEN', 'CLOSED', 'IN_PROGRESS']).optional(),
+});
+
+const patchIssueSchema = createIssueSchema.partial();
+
 type IssueForm = z.infer<typeof createIssueSchema>;
+type PatchIssueForm = z.infer<typeof patchIssueSchema>;
 
 interface IssueFormComponentProps {
   issue?: {
@@ -41,24 +54,96 @@ interface IssueFormComponentProps {
     title: string;
     description: string;
     priority: 'high' | 'medium' | 'low' | 'lowest';
-    assignedDate?: string;
-    deadlineDate?: string;
+    assignedDate?: string | null | undefined;
+    deadlineDate?: string | null | undefined;
+    assignedToUserId?: string | null;
+    status?: 'OPEN' | 'CLOSED' | 'IN_PROGRESS';
     issueImages?: { id: number; imageUrl: string }[];
   } | null;
 }
 
+interface DatePickerProps {
+  label: string;
+  name: string;
+  defaultValue?: string | null;
+}
+
+const DatePicker = ({ label, name, defaultValue }: DatePickerProps) => {
+  const { setValue, watch } = useFormContext();
+  const dateValue = watch(name);
+  const date = dateValue ? new Date(dateValue) : defaultValue ? new Date(defaultValue) : undefined;
+
+  const handleSelectDate = (selectedDate: Date | undefined) => {
+    setValue(name, selectedDate?.toISOString() || null);
+  };
+
+  return (
+    <div className="flex flex-col gap-2">
+      <span className="text-sm font-medium text-gray-700">{label}</span>
+      <Popover>
+        <PopoverTrigger asChild>
+          <Button
+            variant={'outline'}
+            className={cn(
+              'w-full justify-start text-left font-normal',
+              !date && 'text-muted-foreground'
+            )}
+          >
+            <CalendarIcon className="mr-2 h-4 w-4" />
+            {date ? format(date, 'PPP') : <span>Pick a Date</span>}
+          </Button>
+        </PopoverTrigger>
+        <PopoverContent className="w-auto p-0">
+          <Calendar
+            mode="single"
+            selected={date}
+            onSelect={handleSelectDate}
+            initialFocus
+          />
+        </PopoverContent>
+      </Popover>
+    </div>
+  );
+};
+
+const AssignDates = ({
+  assignedDate,
+  deadlineDate,
+}: {
+  assignedDate?: string | null;
+  deadlineDate?: string | null;
+}) => {
+  return (
+    <div className="flex flex-col gap-4">
+      <DatePicker label="Assign Date" name="assignDate" defaultValue={assignedDate} />
+      <DatePicker label="Deadline Date" name="deadlineDate" defaultValue={deadlineDate} />
+    </div>
+  );
+};
+
 const IssueFormComponent: React.FC<IssueFormComponentProps> = ({ issue }) => {
   const { data: session } = useSession();
   const router = useRouter();
-  const [loading, setLoading] = useState(false);
   const { socket } = useSocketStore();
-  const { handleSendNotification } = useNotification()
-  const methods = useForm<IssueForm>({
-    resolver: zodResolver(createIssueSchema),
+  const { handleSendNotification } = useNotification();
+  const queryClient = useQueryClient();
+
+  const { data: users } = useQuery({
+    queryKey: ['devs'],
+    queryFn: () => axios.get('/api/devs').then((res) => res.data.users),
+  });
+
+  const methods = useForm<IssueForm | PatchIssueForm>({
+    resolver: zodResolver(issue ? patchIssueSchema : createIssueSchema),
     defaultValues: {
       title: issue?.title || '',
       description: issue?.description || '',
       priority: issue?.priority || 'low',
+      assignedToUserId: issue?.assignedToUserId || undefined,
+      status: issue?.status || 'OPEN',
+      storageType: 's3',
+      assignDate: issue?.assignedDate || null,
+      deadlineDate: issue?.deadlineDate || null
     },
   });
 
@@ -68,6 +153,7 @@ const IssueFormComponent: React.FC<IssueFormComponentProps> = ({ issue }) => {
     control,
     setValue,
     formState: { errors },
+    getValues,
   } = methods;
 
   useEffect(() => {
@@ -75,69 +161,63 @@ const IssueFormComponent: React.FC<IssueFormComponentProps> = ({ issue }) => {
       setValue('title', issue.title);
       setValue('description', issue.description);
       setValue('priority', issue.priority);
+      setValue('assignedToUserId', issue.assignedToUserId || undefined);
+      setValue('status', issue.status || 'OPEN');
+      setValue('assignDate', issue.assignedDate || null);
+      setValue('deadlineDate', issue.deadlineDate || null);
     }
   }, [issue, setValue]);
 
-  const queryClient = useQueryClient();
   const mutation = useMutation({
-    mutationFn: (issueData: FormData) => {
+    mutationFn: (formData: FormData) => {
       if (issue) {
-        return axios.patch(`/api/issues/${issue.id}`, issueData);
+        return axios.patch(`/api/issues/${issue.id}`, formData);
       } else {
-        return axios.post('/api/issues', issueData);
+        return axios.post('/api/issues', formData);
       }
     },
     onSuccess: ({ data }) => {
       queryClient.invalidateQueries({ queryKey: ['issues'] });
-      if (socket) {
+
+      if (socket && session?.user) {
         handleSendNotification({
           id: data.id,
-          title: 'New Issue',
-          message: `${session?.user?.name} have  created a new issue ${data.title}`,
+          title: issue ? 'Issue Updated' : 'New Issue',
+          message: `${session.user.name} ${issue ? 'updated' : 'created'} an issue: ${data.title}`,
           type: 'issue',
           read: false,
-          senderId: session?.user?.id,
-          userId: 'cm9zm65va0001i0lt3fx37yl6',
-          createdAt: Date.now().toString()
-        })
+          senderId: session.user.id,
+          userId: data.assignedToUserId || 'default-user-id',
+          createdAt: new Date().toISOString(),
+        });
       }
-      setLoading(false);
+
       toast.success(`Issue ${issue ? 'updated' : 'created'} successfully`);
       router.push('/issues');
       router.refresh();
-
     },
     onError: (error) => {
-      if (error instanceof Error) {
-        console.log(error.message);
-        setLoading(false);
-      }
+      toast.error(error instanceof Error ? error.message : 'An error occurred');
     },
   });
 
-  const onSubmit = (data: IssueForm) => {
-    const images: File[] = methods.getValues('images') || [];
-    const storageType: string = methods.getValues('storageType') || 's3';
-    const assignDate: string | null = methods.getValues('assignDate') || null;
-    const deadlineDate: string | null = methods.getValues('deadlineDate') || null;
+  const onSubmit = (data: IssueForm | PatchIssueForm) => {
+    const images: File[] = getValues('images') || [];
+    const storageType: string = getValues('storageType') || 's3';
+    const assignDate: string | null = getValues('assignDate') ?? null;
+    const deadlineDate: string | null = getValues('deadlineDate') ?? null;
 
     const formData = new FormData();
-    formData.append('title', data.title);
-    formData.append('description', data.description);
-    formData.append('priority', data.priority);
-    formData.append('storageType', storageType);
+    if (data.title) formData.append('title', data.title);
+    if (data.description) formData.append('description', data.description);
+    if (data.priority) formData.append('priority', data.priority);
+    if (storageType) formData.append('storageType', storageType);
     if (assignDate) formData.append('assignDate', assignDate);
     if (deadlineDate) formData.append('deadlineDate', deadlineDate);
-
-    if (session?.user?.id) {
-      formData.append('user_id', String(session.user.id));
-    }
-
-    images.forEach((image) => {
-      formData.append('images', image);
-    });
-
-    setLoading(true);
+    if (session?.user?.id) formData.append('user_id', session.user.id);
+    if (data.assignedToUserId) formData.append('assignedToUserId', data.assignedToUserId);
+    if (data.status) formData.append('status', data.status);
+    images.forEach((image) => formData.append('images', image));
 
     mutation.mutate(formData);
   };
@@ -156,10 +236,11 @@ const IssueFormComponent: React.FC<IssueFormComponentProps> = ({ issue }) => {
             <CardContent>
               <div className="space-y-4">
                 <div>
-                  <Label htmlFor="name">Name</Label>
-                  <Input id="name" {...register('title')} type="text" className="w-full mb-3" />
+                  <Label htmlFor="title">Title</Label>
+                  <Input id="title" {...register('title')} />
                   {errors.title && <ErrorMessage>{errors.title.message}</ErrorMessage>}
                 </div>
+
                 <div>
                   <Label htmlFor="description">Description</Label>
                   <Controller
@@ -174,15 +255,19 @@ const IssueFormComponent: React.FC<IssueFormComponentProps> = ({ issue }) => {
               </div>
             </CardContent>
           </Card>
+
           <Card className="col-span-3">
             <CardHeader>
-              <CardTitle>Due Date</CardTitle>
-              <CardDescription>Select a due date for the issue</CardDescription>
+              <CardTitle>Issue Details</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div>
                 <Label htmlFor="priority">Priority</Label>
-                <select id="priority" {...register('priority')} className="w-full mt-1 px-3 py-2 border border-gray-300 rounded-md">
+                <select
+                  id="priority"
+                  {...register('priority')}
+                  className="w-full mt-1 px-3 py-2 border rounded-md"
+                >
                   <option value="high">High</option>
                   <option value="medium">Medium</option>
                   <option value="low">Low</option>
@@ -190,13 +275,70 @@ const IssueFormComponent: React.FC<IssueFormComponentProps> = ({ issue }) => {
                 </select>
                 {errors.priority && <ErrorMessage>{errors.priority.message}</ErrorMessage>}
               </div>
-              {issue && <AssignDate assignedDate={issue?.assignedDate} deadlineDate={issue?.deadlineDate} />}
+
+              {
+                issue && <AssignDates
+                  assignedDate={issue?.assignedDate}
+                  deadlineDate={issue?.deadlineDate}
+                />
+              }
+
+              {issue && (
+                <>
+                  <div>
+                    <Label htmlFor="users">Assign User</Label>
+                    <Controller
+                      name="assignedToUserId"
+                      control={control}
+                      render={({ field }) => (
+                        <Select onValueChange={field.onChange} value={field.value || ''}>
+                          <SelectTrigger id="users">
+                            <SelectValue placeholder="Select user" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {users?.map((user: any) => (
+                              <SelectItem key={user.id} value={user.id}>
+                                {user.name}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      )}
+                    />
+                  </div>
+
+                  <div>
+                    <Label htmlFor="status">Status</Label>
+                    <Controller
+                      name="status"
+                      control={control}
+                      render={({ field }) => (
+                        <Select onValueChange={field.onChange} value={field.value || 'OPEN'}>
+                          <SelectTrigger id="status">
+                            <SelectValue placeholder="Select status" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="OPEN">Active</SelectItem>
+                            <SelectItem value="IN_PROGRESS">In Progress</SelectItem>
+                            <SelectItem value="CLOSED">Closed</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      )}
+                    />
+                  </div>
+                </>
+              )}
             </CardContent>
           </Card>
         </div>
+
         <MultiImageUpload issueImages={issue?.issueImages} />
+
         <div className="flex justify-end">
-          <Button type="submit" disabled={loading}>{issue ? 'Update Issue' : 'Add Issue'}{loading && <Spinner />}</Button>
+          <Button type="submit" disabled={mutation.isPending}>
+            {issue ? 'Update Issue' : 'Add Issue'}
+            {mutation.isPending && <Spinner />}
+          </Button>
         </div>
       </form>
     </FormProvider>

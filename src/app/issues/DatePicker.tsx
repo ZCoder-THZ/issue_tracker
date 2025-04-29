@@ -3,7 +3,6 @@
 import * as React from 'react';
 import { format } from 'date-fns';
 import { Calendar as CalendarIcon } from 'lucide-react';
-
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Calendar } from '@/components/ui/calendar';
@@ -17,15 +16,16 @@ import {
 interface DatePickerProps {
   label: string;
   name: string;
-  defaultValue?: Date; // Allow default value
+  defaultValue?: string | null;
 }
 
 const DatePicker = ({ label, name, defaultValue }: DatePickerProps) => {
   const { setValue, watch } = useFormContext();
-  const date = watch(name) || defaultValue; // Use default if not set
+  const dateValue = watch(name);
+  const date = dateValue ? new Date(dateValue) : defaultValue ? new Date(defaultValue) : undefined;
 
   const handleSelectDate = (selectedDate: Date | undefined) => {
-    setValue(name, selectedDate); // Update form field value
+    setValue(name, selectedDate?.toISOString() || null);
   };
 
   return (
@@ -36,18 +36,18 @@ const DatePicker = ({ label, name, defaultValue }: DatePickerProps) => {
           <Button
             variant={'outline'}
             className={cn(
-              'w-[280px] justify-start text-left font-normal',
+              'w-full justify-start text-left font-normal',
               !date && 'text-muted-foreground'
             )}
           >
             <CalendarIcon className="mr-2 h-4 w-4" />
-            {date ? format(new Date(date), 'PPP') : <span>Pick a Date</span>}
+            {date ? format(date, 'PPP') : <span>Pick a Date</span>}
           </Button>
         </PopoverTrigger>
         <PopoverContent className="w-auto p-0">
           <Calendar
             mode="single"
-            selected={date ? new Date(date) : undefined}
+            selected={date}
             onSelect={handleSelectDate}
             initialFocus
           />
@@ -57,12 +57,12 @@ const DatePicker = ({ label, name, defaultValue }: DatePickerProps) => {
   );
 };
 
-export default function AssignDates({
+export function AssignDates({
   assignedDate,
   deadlineDate,
 }: {
-  assignedDate?: Date | null;
-  deadlineDate?: Date | null;
+  assignedDate?: string | null;
+  deadlineDate?: string | null;
 }) {
   return (
     <div className="flex flex-col gap-4">
