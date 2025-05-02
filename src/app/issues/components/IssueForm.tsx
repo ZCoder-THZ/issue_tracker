@@ -9,7 +9,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { AssignedDates } from '../DatePicker';
+import { AssignedDates } from '../../../components/issueList/DatePicker';
 import SimpleMDEEditor from 'react-simplemde-editor';
 import MultiImageUpload from '../new/imageUpload';
 import 'easymde/dist/easymde.min.css';
@@ -23,8 +23,7 @@ import { useIssueFormSubmit } from '@/hooks/useIssueFormSubmit'
 const IssueFormComponent: React.FC<IssueFormComponentProps> = ({ issue }) => {
   const { data: session } = useSession();
   const methods = useIssueForm(
-    issue,
-
+    issue
   )
   console.log(issue);
   const { data: users } = useDevs();
@@ -49,16 +48,16 @@ const IssueFormComponent: React.FC<IssueFormComponentProps> = ({ issue }) => {
 
     const images: File[] = getValues('images') || [];
     const storageType: string = getValues('storageType') || 's3';
-    const assignedDate: string | null = getValues('assignedDate') ?? null;
-    const deadlineDate: string | null = getValues('deadlineDate') ?? null;
+    const assignedDate: Date | null = getValues('assignedDate') ?? null;
+    const deadlineDate: Date | null = getValues('deadlineDate') ?? null;
 
     const formData = new FormData();
     if (data.title) formData.append('title', data.title);
     if (data.description) formData.append('description', data.description);
     if (data.priority) formData.append('priority', data.priority);
     if (storageType) formData.append('storageType', storageType);
-    if (assignedDate) formData.append('assignedDate', assignedDate);
-    if (deadlineDate) formData.append('deadlineDate', deadlineDate);
+    if (assignedDate) formData.append('assignedDate', assignedDate.toISOString());
+    if (deadlineDate) formData.append('deadlineDate', deadlineDate.toISOString());
     if (session?.user?.id) formData.append('user_id', session.user.id);
     if (data.assignedToUserId) formData.append('assignedToUserId', data.assignedToUserId);
     if (data.status) formData.append('status', data.status);
@@ -170,7 +169,7 @@ const IssueFormComponent: React.FC<IssueFormComponentProps> = ({ issue }) => {
                           <SelectContent>
                             <SelectItem value="OPEN">Active</SelectItem>
                             <SelectItem value="IN_PROGRESS">In Progress</SelectItem>
-                            <SelectItem value="CLOSED">Closed</SelectItem>
+                            <SelectItem value="CLOSED">CLOSED</SelectItem>
                           </SelectContent>
                         </Select>
                       )}
@@ -187,14 +186,13 @@ const IssueFormComponent: React.FC<IssueFormComponentProps> = ({ issue }) => {
         <div className="flex justify-end">
           <Button
             type="submit"
-            disabled={mutation.isPending || !isDirty}
+
             onClick={
               () => {
                 try {
 
-                  handleSubmit(onSubmit)();
                 } catch (error) {
-                  console.log(error);
+
                 }
               }
             }

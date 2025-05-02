@@ -3,16 +3,17 @@ import Link from "next/link";
 import { Button } from "@radix-ui/themes";
 import prisma from "../../../prisma/client";
 import IssueBadge from "@/components/Status";
-import IssueActions from "./issueActions";
+import IssueActions from "../../components/issueList/issueActions";
 import DeleteIssue from "@/components/DeleteIssue";
 import { CalendarIcon, PersonIcon, ClockIcon } from "@radix-ui/react-icons";
-import { PaginationDemo } from "./Pagination";
-import { SearchInput } from "./SearchInput";
+import { PaginationDemo } from "../../components/issueList/Pagination";
+import { SearchInput } from "../../components/issueList/SearchInput";
 import { sessionAuth } from "@/lib/sessionAUth";
-import FilterIssue from "./filterIssue";
-import DeadlineFilter from "./DeadlineFilter";
-
+import FilterIssue from "../../components/issueList/filterIssue";
+import DeadlineFilter from "../../components/issueList/DeadlineFilter";
+import { Issue } from "@/types/issues";
 export const dynamic = "force-dynamic";
+
 
 interface SearchParams {
   status?: string;
@@ -24,31 +25,7 @@ interface SearchParams {
   deadline?: string;
 }
 
-interface User {
-  id: string;
-  name: string | null;
-  email: string | null;
-  emailVerified: Date | null;
-  image: string | null;
-  role: number;
-  password: string;
-}
 
-interface Issue {
-  id: number;
-  title: string;
-  description: string;
-  status: "OPEN" | "IN_PROGRESS" | "CLOSED";
-  priority: "low" | "medium" | "high";
-  assignedDate: Date | null;
-  deadlineDate: Date | null;
-  createdAt: Date;
-  updatedAt: Date;
-  userId: string;
-  assignedToUserId: string | null;
-  user: User;
-  assignedToUser: User | null;
-}
 
 export default async function IssuesPage({
   searchParams,

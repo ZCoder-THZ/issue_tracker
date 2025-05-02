@@ -7,7 +7,7 @@ const IssueForm = dynamic(() => import('../../components/IssueForm'), {
 });
 
 interface Props {
-  params: { id: string }; // FIXED: Removed `Promise<>` – `params` is not async
+  params: { id: string };
 }
 
 async function page({ params }: Props) {

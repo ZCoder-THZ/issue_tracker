@@ -4,7 +4,7 @@ import Link from 'next/link';
 import delay from 'delay';
 import Skeleton from 'react-loading-skeleton';
 import 'react-loading-skeleton/dist/skeleton.css';
-import IssueActions from './issueActions';
+import IssueActions from '../../components/issueList/issueActions';
 import {
   Table,
   TableBody,

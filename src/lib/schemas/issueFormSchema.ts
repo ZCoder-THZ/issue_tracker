@@ -1,16 +1,27 @@
 import { z } from 'zod';
-export const createIssueSchema = z.object({
-    title: z.string().min(1, { message: 'Title is required' }).max(255),
-    description: z.string().min(1, { message: 'Description is required' }).max(65535),
-    assignedToUserId: z.string().nullable().optional(),
-    priority: z.enum(['high', 'medium', 'low', 'lowest']).default('low'),
-    images: z.array(z.any()),
-    storageType: z.string().default('s3'),
-    assignedDate: z.string().nullable().optional(),
-    deadlineDate: z.string().nullable().optional(),
-    status: z.enum(['OPEN', 'CLOSED', 'IN_PROGRESS']).default('OPEN'),
-});
-export const patchIssueSchema = createIssueSchema.extend({
-    id: z.number()
-}).partial();
 
+
+export const createIssueSchema = z.object({
+    title: z.string().min(1),
+    description: z.string().optional(),
+    priority: z.enum(['low', 'medium', 'high']),
+    assignedToUserId: z.string().nullable(),
+    assignedDate: z
+        .preprocess((val) => (typeof val === 'string' ? new Date(val) : val), z.date().nullable()),
+    deadlineDate: z
+        .preprocess((val) => (typeof val === 'string' ? new Date(val) : val), z.date().nullable()),
+    status: z.enum(['OPEN', 'IN_PROGRESS', 'DONE']),
+    images: z.array(
+        z.object({
+            id: z.number(),
+            imageUrl: z.string().url(),
+        })
+    ),
+    storageType: z.enum(['s3', 'local']),
+});
+
+export const patchIssueSchema = createIssueSchema.extend(
+    {
+        id: z.number(),
+    }
+).partial(); // or replicate with optional fields

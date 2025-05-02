@@ -16,13 +16,18 @@ import {
 interface DatePickerProps {
   label: string;
   name: string;
-  defaultValue?: string | null;
+  defaultValue?: Date | null;
 }
 
 const DatePicker = ({ label, name, defaultValue }: DatePickerProps) => {
   const { setValue, watch } = useFormContext();
   const dateValue = watch(name);
-  const date = dateValue ? new Date(dateValue) : defaultValue ? new Date(defaultValue) : undefined;
+
+  const date = dateValue
+    ? new Date(dateValue)
+    : defaultValue
+      ? new Date(defaultValue)
+      : undefined;
 
   const handleSelectDate = (selectedDate: Date | undefined) => {
     setValue(name, selectedDate?.toISOString() || null);
@@ -61,13 +66,35 @@ export function AssignedDates({
   assignedDate,
   deadlineDate,
 }: {
-  assignedDate?: string | null;
-  deadlineDate?: string | null;
+  assignedDate?: string | Date | null;
+  deadlineDate?: string | Date | null;
 }) {
+  const parsedAssignedDate =
+    assignedDate instanceof Date
+      ? assignedDate
+      : assignedDate
+        ? new Date(assignedDate)
+        : null;
+
+  const parsedDeadlineDate =
+    deadlineDate instanceof Date
+      ? deadlineDate
+      : deadlineDate
+        ? new Date(deadlineDate)
+        : null;
+
   return (
     <div className="flex flex-col gap-4">
-      <DatePicker label="Assign Date" name="assignedDate" defaultValue={assignedDate} />
-      <DatePicker label="Deadline Date" name="deadlineDate" defaultValue={deadlineDate} />
+      <DatePicker
+        label="Assign Date"
+        name="assignedDate"
+        defaultValue={parsedAssignedDate}
+      />
+      <DatePicker
+        label="Deadline Date"
+        name="deadlineDate"
+        defaultValue={parsedDeadlineDate}
+      />
     </div>
   );
 }
