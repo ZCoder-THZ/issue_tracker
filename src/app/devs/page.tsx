@@ -15,6 +15,7 @@ import {
 
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import useNotification from '@/hooks/useNotification';
 import {
   DropdownMenu,
   DropdownMenuTrigger,
@@ -42,12 +43,13 @@ export default function DataTableDemo() {
   const { data: session } = useSession();
   const { data: users, isLoading } = useDevs();
   const updateRole = useUpdateDevRole();
+  const { handleSendNotification } = useNotification();
 
   const handleRoleChange = (id: string, role: string) => {
     updateRole.mutate({ id, role });
   };
 
-  const columns = getColumns({ handleRoleChange });
+  const columns = getColumns({ handleRoleChange, handleSendNotification, sessionUserId: session?.user?.id });
 
   const [sorting, setSorting] = React.useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);

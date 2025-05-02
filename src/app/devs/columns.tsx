@@ -3,7 +3,7 @@
 import { ColumnDef } from "@tanstack/react-table"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { getRole } from "@/lib/utils"
-import { useSession } from "next-auth/react"
+
 import { toast } from "react-toastify"
 import Link from "next/link"
 import { MoreHorizontal } from "lucide-react"
@@ -17,7 +17,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { Button } from "@/components/ui/button"
-import useNotification from "@/hooks/useNotification"
+
 type Developer = {
   id: string
   name: string
@@ -27,9 +27,23 @@ type Developer = {
 
 interface ColumnProps {
   handleRoleChange: (id: string, role: string) => void
+  handleSendNotification: (params: {
+    id: number
+    userId: string
+    title: string
+    message: string
+    type: string
+    read: boolean
+    senderId?: string
+    createdAt: string
+  }) => void
+  sessionUserId?: string
+
+
 }
 
-export const getColumns = ({ handleRoleChange }: ColumnProps): ColumnDef<Developer>[] => [
+
+export const getColumns = ({ handleRoleChange, handleSendNotification, sessionUserId }: ColumnProps): ColumnDef<Developer>[] => [
   {
     accessorKey: "name",
     header: "Name",
@@ -81,8 +95,8 @@ export const getColumns = ({ handleRoleChange }: ColumnProps): ColumnDef<Develop
     cell: ({ row }) => {
       const dev = row.original
       const roleValue = String(dev.role ?? "0")
-      const { handleSendNotification } = useNotification()
-      const { data: session } = useSession()
+
+
       return (
         <Select
           value={roleValue}
@@ -95,7 +109,7 @@ export const getColumns = ({ handleRoleChange }: ColumnProps): ColumnDef<Develop
                 message: `${dev.name} role changed to ${getRole(value)}`,
                 type: "role_change",
                 read: false,
-                senderId: session?.user?.id,
+                senderId: sessionUserId,
                 createdAt: new Date().toISOString(),
               })
               handleRoleChange(dev.id, value)

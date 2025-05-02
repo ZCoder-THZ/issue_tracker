@@ -3,6 +3,7 @@ import type { Metadata } from 'next';
 // import { Inter } from 'next/font/google';
 import Navbar from './Navbar';
 import QueryclientProvider from '@/providers/QueryClientProvider';
+import { ReactQueryDevtools } from '@tanstack/react-query-devtools'
 import '@radix-ui/themes/styles.css';
 import { Theme } from '@radix-ui/themes';
 // const inter = Inter({ subsets: ['latin'] });
@@ -32,6 +33,7 @@ export default function RootLayout({
         <Provider>
           <Theme>
             <Navbar />
+            <ReactQueryDevtools initialIsOpen={false} />
             <ToastContainer />
             <SocketSessionHandler />
             <main className="p-5">{children}</main>

@@ -28,7 +28,7 @@ export async function PATCH(request: NextRequest, props: { params: Promise<{ id:
     const title = formData.get('title')?.toString();
     const priority = formData.get('priority')?.toString();
     const description = formData.get('description')?.toString();
-    const assignDate = formData.get('assignDate')?.toString();
+    const assignDate = formData.get('assignedDate')?.toString();
     const deadlineDate = formData.get('deadlineDate')?.toString();
     const status = formData.get('status')?.toString();
     const assignedUserId = formData.get('assignedToUserId')?.toString();
@@ -44,9 +44,9 @@ export async function PATCH(request: NextRequest, props: { params: Promise<{ id:
     if (!validation.success) {
       return NextResponse.json(validation.error.errors, { status: 400 });
     }
-
+    console.log(files)
     // Delete specified images
-    if (deleteImages.length > 0) {
+    if (files.length > 0) {
       for (const imageUrl of deleteImages) {
         try {
           await prisma.issueImage.deleteMany({ where: { issueId, imageUrl } });

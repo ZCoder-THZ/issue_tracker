@@ -15,7 +15,7 @@ interface Notification {
     message: string;
     read: boolean;
     userId: string,
-    senderId: string,
+    senderId?: string,
     createdAt: string;
     type?: string;
     issue?: Issue

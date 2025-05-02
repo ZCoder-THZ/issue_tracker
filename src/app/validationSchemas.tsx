@@ -8,7 +8,7 @@ export const createIssueSchema = z.object({
   priority: z.enum(['high', 'medium', 'low', 'lowest']).optional(),
   images: z.any().optional(), // For file uploads
   storageType: z.string().optional().default('s3'),
-  assignDate: z.string().optional().nullable(),
+  assignedDate: z.string().optional().nullable(),
   deadlineDate: z.string().optional().nullable(),
   status: z.enum(['OPEN', 'CLOSED', 'IN_PROGRESS']).optional()
 });
@@ -20,7 +20,7 @@ export const patchIssueSchema = z.object({
   priority: z.enum(['high', 'medium', 'low', 'lowest']).optional(),
   images: z.any().optional(),
   storageType: z.string().optional(),
-  assignDate: z.string().optional().nullable(),
+  assignedDate: z.string().optional().nullable(),
   deadlineDate: z.string().optional().nullable(),
   status: z.enum(['OPEN', 'CLOSED', 'IN_PROGRESS']).optional()
 });
@@ -80,8 +80,8 @@ const IssueFormComponent: React.FC<IssueFormComponentProps> = ({ issue }) => {
     const storageType = methods.getValues('storageType') || 's3';
     formData.append('storageType', storageType);
 
-    const assignDate = methods.getValues('assignDate');
-    if (assignDate) formData.append('assignDate', assignDate);
+    const assignedDate = methods.getValues('assignedDate');
+    if (assignedDate) formData.append('assignedDate', assignedDate);
 
     const deadlineDate = methods.getValues('deadlineDate');
     if (deadlineDate) formData.append('deadlineDate', deadlineDate);

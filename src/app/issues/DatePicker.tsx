@@ -57,7 +57,7 @@ const DatePicker = ({ label, name, defaultValue }: DatePickerProps) => {
   );
 };
 
-export function AssignDates({
+export function AssignedDates({
   assignedDate,
   deadlineDate,
 }: {
@@ -66,7 +66,7 @@ export function AssignDates({
 }) {
   return (
     <div className="flex flex-col gap-4">
-      <DatePicker label="Assign Date" name="assignDate" defaultValue={assignedDate} />
+      <DatePicker label="Assign Date" name="assignedDate" defaultValue={assignedDate} />
       <DatePicker label="Deadline Date" name="deadlineDate" defaultValue={deadlineDate} />
     </div>
   );

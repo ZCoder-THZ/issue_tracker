@@ -4,7 +4,7 @@ import dynamic from 'next/dynamic';
 
 
 
-const IssueForm = dynamic(() => import('../IssueForm'), {
+const IssueForm = dynamic(() => import('../components/IssueForm'), {
   ssr: false,
 });
 

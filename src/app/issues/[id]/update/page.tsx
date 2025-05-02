@@ -1,38 +1,50 @@
 import React from 'react';
-import IssueFormComponent from '../../IssueForm';
 import prisma from '../../../../../prisma/client';
 import dynamic from 'next/dynamic';
-import SelectAction from '../../components/SelectAction';
-const IssueForm = dynamic(() => import('../../IssueForm'), {
+
+const IssueForm = dynamic(() => import('../../components/IssueForm'), {
   ssr: false,
 });
+
 interface Props {
-  params: Promise<{ id: string }>;
+  params: { id: string }; // FIXED: Removed `Promise<>` – `params` is not async
 }
 
-async function page(props: Props) {
-  const params = await props.params;
+async function page({ params }: Props) {
   const issue = await prisma.issue.findUnique({
     where: { id: Number(params.id) },
     include: {
       issueImages: {
         select: {
           id: true,
-          imageUrl: true
-        }
-      }
-    }
+          imageUrl: true,
+        },
+      },
+    },
   });
 
+  if (!issue) {
+    return <div>Issue not found</div>;
+  }
+
+  const { issueImages, ...rest } = issue;
+
+  const formattedIssue = {
+    ...rest,
+    images: issueImages.map((img) => ({
+      id: img.id,
+      imageUrl: img.imageUrl,
+    })),
+  };
+
+
   return (
-    <div className="flex min-h-screen w-full flex-col  bg-muted/40 ">
-      <div className="grid gap-4 md:grid-cols-[1fr_150px] lg:grid-cols-3 mt-5 mx-auto lg:gap-8 w-[80%] ">
+    <div className="flex min-h-screen w-full flex-col bg-muted/40">
+      <div className="grid gap-4 md:grid-cols-[1fr_150px] lg:grid-cols-3 mt-5 mx-auto lg:gap-8 w-[80%]">
         <div className="grid auto-rows-max items-start gap-4 lg:col-span-2 lg:gap-8">
-          <IssueForm issue={issue} />
+          <IssueForm issue={formattedIssue} />
         </div>
-        <div className="h-40">
-          {/* <SelectAction issue={issue} /> */}
-        </div>
+
       </div>
     </div>
   );
