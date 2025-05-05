@@ -159,7 +159,7 @@ export default function Dashboard() {
                         "flex flex-col items-start gap-1 py-3",
                         { "bg-accent/50": !notification.read }
                       )}
-                      onClick={() => !notification.read && markAsRead(notification.id)}
+                      onClick={() => !notification.read && notification.id && markAsRead(notification.id)}
                     >
                       <div className="flex justify-between w-full">
                         <span className="font-medium">{notification.title}</span>

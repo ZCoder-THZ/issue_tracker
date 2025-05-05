@@ -2,7 +2,6 @@ import { z } from 'zod';
 import { createIssueSchema, patchIssueSchema } from '@/lib/schemas/issueFormSchema';
 import { User } from './user';
 export type IssueForm = z.infer<typeof createIssueSchema>;
-export type PatchIssueForm = z.infer<typeof patchIssueSchema>;
 
 export interface Issue {
     id: number;
@@ -30,3 +29,5 @@ export interface IssueFormComponentProps {
     } | null;
 }
 
+
+export type PatchIssueForm = z.infer<typeof patchIssueSchema>;

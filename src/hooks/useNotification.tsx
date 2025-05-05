@@ -32,6 +32,7 @@ function useNotification() {
         socket.emit('get-notifications', (response: { success: boolean; notifications: Notification[] }) => {
             if (response.success) {
                 setNotifications(response.notifications);
+                console.log(response.notifications)
                 setUnreadCount(response.notifications.filter(n => !n.read).length);
             }
         });

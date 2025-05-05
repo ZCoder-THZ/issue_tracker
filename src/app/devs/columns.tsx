@@ -96,43 +96,43 @@ export const getColumns = ({ handleRoleChange, handleSendNotification, sessionUs
       const dev = row.original
       const roleValue = String(dev.role ?? "0")
 
-
       return (
-        <Select
-          value={roleValue}
-          onValueChange={(value) => {
-            try {
-              handleSendNotification({
-                id: Math.random() ** 2,
-                userId: dev.id,
-                title: "role_change",
-                message: `${dev.name} role changed to ${getRole(value)}`,
-                type: "role_change",
-                read: false,
-                senderId: sessionUserId,
-                createdAt: new Date().toISOString(),
-              })
-              handleRoleChange(dev.id, value)
-              console.log(dev.id)
-            } catch (error) {
-              console.log(error)
-
-            }
-          }
-          }
-        >
-          <SelectTrigger className="min-w-[120px]">
-            <SelectValue placeholder={getRole(roleValue)} />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="0">Tester</SelectItem>
-            <SelectItem value="1">Developer</SelectItem>
-            <SelectItem value="2">Admin</SelectItem>
-
-
-          </SelectContent>
-        </Select>
+        <div>
+          {sessionUserId !== dev.id ? (
+            <Select
+              value={roleValue}
+              onValueChange={(value) => {
+                try {
+                  handleSendNotification({
+                    id: Math.random() ** 2,
+                    userId: dev.id,
+                    title: "Role Promoting",
+                    message: `Your role changed to ${getRole(value)}`,
+                    type: "role_change",
+                    read: false,
+                    senderId: sessionUserId,
+                    createdAt: new Date().toISOString(),
+                  })
+                  handleRoleChange(dev.id, value)
+                } catch (error) {
+                  console.log(error)
+                }
+              }}
+            >
+              <SelectTrigger className="min-w-[120px]">
+                <SelectValue placeholder={getRole(roleValue)} />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="0">Tester</SelectItem>
+                <SelectItem value="1">Developer</SelectItem>
+                <SelectItem value="2">Admin</SelectItem>
+              </SelectContent>
+            </Select>
+          ) : (
+            <div>{getRole(roleValue)}</div>
+          )}
+        </div>
       )
     },
-  },
+  }
 ]

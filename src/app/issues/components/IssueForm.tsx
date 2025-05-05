@@ -40,31 +40,47 @@ const IssueFormComponent: React.FC<IssueFormComponentProps> = ({ issue }) => {
   } = methods;
 
 
-
-
-
   const onSubmit = (data: IssueForm | PatchIssueForm) => {
-
-
-    const images: File[] = getValues('images') || [];
+    const images = getValues('images') || [];
     const storageType: string = getValues('storageType') || 's3';
-    const assignedDate: Date | null = getValues('assignedDate') ?? null;
-    const deadlineDate: Date | null = getValues('deadlineDate') ?? null;
+    const assignedDate: Date | string | null = getValues('assignedDate') ?? null;
+    const deadlineDate: Date | string | null = getValues('deadlineDate') ?? null;
 
     const formData = new FormData();
     if (data.title) formData.append('title', data.title);
     if (data.description) formData.append('description', data.description);
     if (data.priority) formData.append('priority', data.priority);
     if (storageType) formData.append('storageType', storageType);
-    if (assignedDate) formData.append('assignedDate', assignedDate.toISOString());
-    if (deadlineDate) formData.append('deadlineDate', deadlineDate.toISOString());
+
+    // Handle dates safely
+    if (assignedDate) {
+      const dateToUse = typeof assignedDate === 'string'
+        ? new Date(assignedDate)
+        : assignedDate;
+      formData.append('assignedDate', dateToUse.toISOString());
+    }
+
+    if (deadlineDate) {
+      const dateToUse = typeof deadlineDate === 'string'
+        ? new Date(deadlineDate)
+        : deadlineDate;
+      formData.append('deadlineDate', dateToUse.toISOString());
+    }
+
     if (session?.user?.id) formData.append('user_id', session.user.id);
     if (data.assignedToUserId) formData.append('assignedToUserId', data.assignedToUserId);
     if (data.status) formData.append('status', data.status);
-    images.forEach((image) => {
-      formData.append('images', image);
 
+    images.forEach((image) => {
+      if (image instanceof File || image instanceof Blob) {
+        formData.append('images', image);
+      } else if (typeof image === 'object' && image.imageUrl) {
+        formData.append('images', JSON.stringify(image));
+      } else if (typeof image === 'string') {
+        formData.append('images', image);
+      }
     });
+
     mutation.mutate(formData);
   };
   return (
