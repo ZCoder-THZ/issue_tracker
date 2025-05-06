@@ -62,10 +62,10 @@ export async function POST(request: NextRequest) {
         return imageUrl;
       })
     );
-
+    console.log(issue)
     return NextResponse.json({
       msg: 'success',
-      files: uploadResults,
+      issue
     });
   } catch (error) {
     console.error('Error handling upload:', error);

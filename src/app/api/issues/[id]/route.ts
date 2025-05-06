@@ -44,7 +44,7 @@ export async function PATCH(request: NextRequest, props: { params: Promise<{ id:
     if (!validation.success) {
       return NextResponse.json(validation.error.errors, { status: 400 });
     }
-    console.log(files)
+
     // Delete specified images
     if (files.length > 0) {
       for (const imageUrl of deleteImages) {

@@ -14,14 +14,14 @@ const issueBaseSchema = z.object({
         (val) => (typeof val === 'string' ? new Date(val) : val),
         z.date().nullable()
     ),
-    status: z.enum(['OPEN', 'IN_PROGRESS', 'DONE']),
+    status: z.enum(['OPEN', 'IN_PROGRESS', 'DONE']).default('OPEN').optional(),
     images: z.array(
         z.object({
-            id: z.number(),
-            imageUrl: z.string().url(),
+            id: z.number().optional(), // If ID can be optional
+            imageUrl: z.string().url().optional() // If imageUrl can be optional
         })
-    ),
-    storageType: z.enum(['s3', 'local']),
+    ).optional(),
+    storageType: z.enum(['s3', 'cloudinary']).default('cloudinary'),
 });
 
 // Create schema - doesn't include id

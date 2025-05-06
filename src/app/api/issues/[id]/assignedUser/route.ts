@@ -16,7 +16,7 @@ export const PATCH = async (request: NextRequest, props: { params: Promise<{ id:
     });
 
     if (issue) {
-      console.log('Request Body:', body); // Debug log for request body
+
 
       // Update the issue with the new assigned user
       const updatedIssue = await prisma.issue.update({

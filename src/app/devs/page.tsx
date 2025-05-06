@@ -49,7 +49,7 @@ export default function DataTableDemo() {
     updateRole.mutate({ id, role });
   };
 
-  const columns = getColumns({ handleRoleChange, handleSendNotification, sessionUserId: session?.user?.id });
+  const columns = getColumns({ handleRoleChange, handleSendNotification, sessionUserId: session?.user?.id, sessionUserRole: session?.user?.role });
 
   const [sorting, setSorting] = React.useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);

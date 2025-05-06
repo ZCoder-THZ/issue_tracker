@@ -40,7 +40,7 @@ export default async function Page(props: IssueProps) {
   return (
     <div className="flex min-h-screen w-full flex-col bg-gradient-to-br from-gray-100 to-gray-200 py-10 px-4 lg:px-20">
       <div className="grid gap-8 md:grid-cols-1 lg:grid-cols-3 mx-auto w-full max-w-6xl">
-        {/* Left Content (Issue Details) */}
+
         <div className="lg:col-span-2 space-y-8">
           <Card className="shadow-xl border border-gray-300 rounded-lg overflow-hidden bg-white transform hover:scale-105 transition-transform">
             <div className="p-6 bg-gradient-to-r from-blue-500 to-indigo-500 text-white flex justify-between items-center">
@@ -51,13 +51,13 @@ export default async function Page(props: IssueProps) {
               <IssueBadge status={issue.status} />
             </div>
             <CardContent className="p-6 space-y-6">
-              {/* Title */}
+
               <div>
                 <h3 className="text-lg font-bold text-gray-900">Title</h3>
                 <p className="text-gray-700 text-lg">{issue.title}</p>
               </div>
 
-              {/* Priority Badge */}
+
               <div>
                 <h3 className="text-lg font-bold text-gray-900">Priority</h3>
                 <span
@@ -78,8 +78,7 @@ export default async function Page(props: IssueProps) {
                   <ReactMarkdown>{issue.description}</ReactMarkdown>
                 </div>
               </div>
-
-              {/* Dates */}
+              =
 
               {issue.assignedDate && (
                 <p className="text-gray-700 font-medium">📅 Assigned Date: {new Date(issue.assignedDate).toDateString()}</p>
@@ -88,15 +87,15 @@ export default async function Page(props: IssueProps) {
                 <p className="text-gray-700 font-medium">⏳ Deadline Date: {new Date(issue.deadlineDate).toDateString()}</p>
               )}
 
-              {/* Issue Images Section */}
+
               {issue.issueImages.length > 0 && <IssueImages issueImages={issue.issueImages} />}
             </CardContent>
           </Card>
         </div>
 
-        {/* Right Content (Assigned Person & Response Section) */}
+
         <div className="space-y-8">
-          {/* Assigned Person */}
+
           <Card className="shadow-xl border border-gray-300 rounded-lg bg-white transform hover:scale-105 transition-transform">
             <CardContent className="p-6">
               <h3 className="text-lg font-bold text-gray-900 flex items-center gap-2">
@@ -106,7 +105,7 @@ export default async function Page(props: IssueProps) {
             </CardContent>
           </Card>
 
-          {/* Response Section */}replies
+
           <ResponseSection issueId={issue.id} issueOwnerId={
             issue.userId
           } />

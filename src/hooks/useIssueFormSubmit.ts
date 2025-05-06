@@ -22,20 +22,23 @@ export const useIssueFormSubmit = (issue: any | undefined) => {
             }
         },
         onSuccess: ({ data }) => {
+
+
             queryClient.invalidateQueries({ queryKey: ['issues'] });
 
             if (socket && session?.user) {
                 handleSendNotification({
-                    id: data.id,
+
                     title: issue ? 'Issue Updated' : 'New Issue',
-                    message: `${session.user.name} ${issue ? 'updated' : 'created'} an issue: ${data.title}`,
+                    message: `${session.user.name} ${issue ? 'updated' : 'created'} an issue `,
                     type: 'issue_creation',
-                    read: false,
+
                     senderId: session.user.id,
                     userId: data.assignedToUserId || 'default-user-id',
-                    createdAt: new Date().toISOString(),
+                    issueId: issue ? issue.id : data.issue.id
                 });
             }
+
 
             toast.success(`Issue ${issue ? 'updated' : 'created'} successfully`);
             router.push('/issues');

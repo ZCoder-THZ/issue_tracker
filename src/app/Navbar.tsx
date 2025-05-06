@@ -1,5 +1,5 @@
 'use client';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect } from 'react';
 import Link from 'next/link';
 import { CircleUser, Menu, Package2, Bell, Check } from 'lucide-react';
 import { usePathname } from 'next/navigation';
@@ -20,53 +20,38 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { Badge } from '@/components/ui/badge';
-
 import useNotification from '@/hooks/useNotification';
-
+import { useNotificationStore } from '@/stores/notificationStore';
 const links = [
-  {
-    name: 'Dashboard',
-    href: '/',
-  },
-  {
-    name: 'Issues',
-    href: '/issues',
-  },
-  {
-    name: 'Devs',
-    href: '/devs',
-  },
+  { name: 'Dashboard', href: '/' },
+  { name: 'Issues', href: '/issues' },
+  { name: 'Devs', href: '/devs' },
+  { name: 'Notifications', href: '/notifications' },
+
 ];
 
-
-export default function Dashboard() {
+export default function Navbar() {
   const { status, data: session } = useSession();
   const currentPath = usePathname();
   const { socket } = useSocketStore();
-  const { notifications, getNotifications, markAsRead, markAllAsRead, unreadCount, } = useNotification()
-
-  useEffect(() => {
-    if (!socket || !session?.user?.id) return;
-
-    console.log(session, 'session')
-    getNotifications()
-
-  }, [socket, session]);
-
-
+  const { notifications } = useNotificationStore()
+  const {
+    // notifications,
+    // getNotifications,
+    markAsRead,
+    markAllAsRead,
+    unreadCount
+  } = useNotification();
 
 
 
   return (
     <div className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <header className="sticky top-0 container mx-auto p-4 flex h-16 items-center gap-4 md:px-6 w-full max-w-[1800px]">
+        {/* Desktop Navigation */}
         <nav className="hidden flex-col gap-6 text-lg font-medium md:flex md:flex-row md:items-center md:gap-5 md:text-sm lg:gap-6">
-          <Link
-            href="#"
-            className="flex items-center gap-2 text-lg font-semibold md:text-base"
-          >
+          <Link href="#" className="flex items-center gap-2 text-lg font-semibold md:text-base">
             <Package2 className="h-6 w-6" />
-            {/* <span className="hidden sm:inline-block">Acme Inc</span> */}
           </Link>
           {links.map((link) => (
             <Link
@@ -84,23 +69,18 @@ export default function Dashboard() {
             </Link>
           ))}
         </nav>
+
+        {/* Mobile Navigation */}
         <Sheet>
           <SheetTrigger asChild>
-            <Button
-              variant="outline"
-              size="icon"
-              className="shrink-0 md:hidden"
-            >
+            <Button variant="outline" size="icon" className="shrink-0 md:hidden">
               <Menu className="h-5 w-5" />
               <span className="sr-only">Toggle navigation menu</span>
             </Button>
           </SheetTrigger>
           <SheetContent side="left" className="flex flex-col">
             <nav className="grid gap-6 text-lg font-medium">
-              <Link
-                href="#"
-                className="flex items-center gap-2 text-lg font-semibold"
-              >
+              <Link href="#" className="flex items-center gap-2 text-lg font-semibold">
                 <Package2 className="h-6 w-6" />
                 <span>Acme Inc</span>
               </Link>
@@ -122,7 +102,10 @@ export default function Dashboard() {
             </nav>
           </SheetContent>
         </Sheet>
+
+        {/* Right Side Controls */}
         <div className="flex w-full items-center justify-end gap-4 md:gap-2 lg:gap-4">
+          {/* Notifications Dropdown */}
           {status === 'authenticated' && (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
@@ -143,7 +126,10 @@ export default function Dashboard() {
                   <span>Notifications</span>
                   {unreadCount > 0 && (
                     <button
-                      onClick={markAllAsRead}
+                      onClick={(e) => {
+                        e.preventDefault();
+                        markAllAsRead();
+                      }}
                       className="text-xs text-primary hover:underline"
                     >
                       Mark all as read
@@ -204,8 +190,10 @@ export default function Dashboard() {
             </DropdownMenu>
           )}
 
+          {/* Dark Mode Toggle */}
           <DarkMode />
 
+          {/* User Profile */}
           {status === 'loading' ? (
             <div className="h-8 w-8 rounded-full">
               <Skeleton circle height={32} width={32} />

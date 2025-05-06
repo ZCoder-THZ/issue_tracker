@@ -9,7 +9,6 @@ import Link from "next/link"
 import { MoreHorizontal } from "lucide-react"
 import {
   DropdownMenu,
-
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuLabel,
@@ -38,101 +37,109 @@ interface ColumnProps {
     createdAt: string
   }) => void
   sessionUserId?: string
-
-
+  sessionUserRole?: number
 }
 
-
-export const getColumns = ({ handleRoleChange, handleSendNotification, sessionUserId }: ColumnProps): ColumnDef<Developer>[] => [
-  {
-    accessorKey: "name",
-    header: "Name",
-    cell: ({ row }) => <div>{row.getValue("name")}</div>,
-  },
-  {
-    accessorKey: "email",
-    header: "Email",
-    cell: ({ row }) => <div>{row.getValue("email")}</div>,
-  },
-
-
-  {
-    id: 'actions',
-    enableHiding: false,
-    cell: ({ row }) => {
-      const devs = row.original;
-
-      return (
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="ghost" className="h-8 w-8 p-0">
-              <span className="sr-only">Open menu</span>
-              <MoreHorizontal className="h-4 w-4" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            <DropdownMenuLabel>Actions</DropdownMenuLabel>
-            <DropdownMenuItem
-              onClick={() => {
-                navigator.clipboard.writeText(devs.id);
-                toast.success('Copied!');
-              }}
-            >
-              Copy developer ID
-            </DropdownMenuItem>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem>
-              <Link href={`/devs/${devs.id}`}>View customer</Link>
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-      );
+export const getColumns = ({
+  handleRoleChange,
+  handleSendNotification,
+  sessionUserId,
+  sessionUserRole
+}: ColumnProps): ColumnDef<Developer>[] => [
+    {
+      accessorKey: "name",
+      header: "Name",
+      cell: ({ row }) => <div>{row.getValue("name")}</div>,
     },
-  },
-  {
-    accessorKey: "role",
-    header: "Role",
-    cell: ({ row }) => {
-      const dev = row.original
-      const roleValue = String(dev.role ?? "0")
-
-      return (
-        <div>
-          {sessionUserId !== dev.id ? (
-            <Select
-              value={roleValue}
-              onValueChange={(value) => {
-                try {
-                  handleSendNotification({
-                    id: Math.random() ** 2,
-                    userId: dev.id,
-                    title: "Role Promoting",
-                    message: `Your role changed to ${getRole(value)}`,
-                    type: "role_change",
-                    read: false,
-                    senderId: sessionUserId,
-                    createdAt: new Date().toISOString(),
-                  })
-                  handleRoleChange(dev.id, value)
-                } catch (error) {
-                  console.log(error)
-                }
-              }}
-            >
-              <SelectTrigger className="min-w-[120px]">
-                <SelectValue placeholder={getRole(roleValue)} />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="0">Tester</SelectItem>
-                <SelectItem value="1">Developer</SelectItem>
-                <SelectItem value="2">Admin</SelectItem>
-              </SelectContent>
-            </Select>
-          ) : (
-            <div>{getRole(roleValue)}</div>
-          )}
-        </div>
-      )
+    {
+      accessorKey: "email",
+      header: "Email",
+      cell: ({ row }) => <div>{row.getValue("email")}</div>,
     },
-  }
-]
+    {
+      id: 'actions',
+      enableHiding: false,
+      cell: ({ row }) => {
+        const dev = row.original;
+
+        // Only show actions if current user is Admin (role 2) and not editing themselves
+        const showActions = sessionUserRole === 2 && sessionUserId !== dev.id;
+
+        return (
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" className="h-8 w-8 p-0" disabled={!showActions}>
+                <span className="sr-only">Open menu</span>
+                <MoreHorizontal className="h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            {showActions && (
+              <DropdownMenuContent align="end">
+                <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                <DropdownMenuItem
+                  onClick={() => {
+                    navigator.clipboard.writeText(dev.id);
+                    toast.success('Copied!');
+                  }}
+                >
+                  Copy developer ID
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem>
+                  <Link href={`/devs/${dev.id}`}>View customer</Link>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            )}
+          </DropdownMenu>
+        );
+      },
+    },
+    {
+      accessorKey: "role",
+      header: "Role",
+      cell: ({ row }) => {
+        const dev = row.original;
+        const roleValue = String(dev.role ?? "0");
+
+        const canEditRole = sessionUserRole === 2 && sessionUserId !== dev.id;
+
+        return (
+          <div>
+            {canEditRole ? (
+              <Select
+                value={roleValue}
+                onValueChange={(value) => {
+                  try {
+                    handleSendNotification({
+                      id: Math.random() ** 2,
+                      userId: dev.id,
+                      title: "Role Promoting",
+                      message: `Your role changed to ${getRole(value)}`,
+                      type: "role_change",
+                      read: false,
+                      senderId: sessionUserId,
+                      createdAt: new Date().toISOString(),
+                    });
+                    handleRoleChange(dev.id, value);
+                  } catch (error) {
+                    console.log(error);
+                  }
+                }}
+              >
+                <SelectTrigger className="min-w-[120px]">
+                  <SelectValue placeholder={getRole(roleValue)} />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="0">Tester</SelectItem>
+                  <SelectItem value="1">Developer</SelectItem>
+                  <SelectItem value="2">Admin</SelectItem>
+                </SelectContent>
+              </Select>
+            ) : (
+              <div>{getRole(roleValue)}</div>
+            )}
+          </div>
+        );
+      },
+    }
+  ]

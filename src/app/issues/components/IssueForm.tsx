@@ -23,6 +23,7 @@ import { useIssueFormSubmit } from '@/hooks/useIssueFormSubmit'
 const IssueFormComponent: React.FC<IssueFormComponentProps> = ({ issue }) => {
   const { data: session } = useSession();
   const methods = useIssueForm(
+    // @ts-ignore
     issue
   )
   console.log(issue);

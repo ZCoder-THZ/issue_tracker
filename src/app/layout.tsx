@@ -2,7 +2,7 @@ import './globals.css';
 import type { Metadata } from 'next';
 // import { Inter } from 'next/font/google';
 import Navbar from './Navbar';
-import QueryclientProvider from '@/providers/QueryClientProvider';
+
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools'
 import '@radix-ui/themes/styles.css';
 import { Theme } from '@radix-ui/themes';
@@ -10,10 +10,9 @@ import { Theme } from '@radix-ui/themes';
 import { QueryClientProvider, QueryClient } from '@tanstack/react-query';
 import Provider from '@/providers/provider';
 import 'react-toastify/dist/ReactToastify.css';
-
+// 
 import { ToastContainer } from 'react-toastify';
 import SocketSessionHandler from '@/lib/SocketSessionHandler';
-// import 'react-toastify/dist/ReactToastify.css';
 
 export const metadata: Metadata = {
   title: 'Create Next App',
