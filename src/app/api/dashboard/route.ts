@@ -22,7 +22,7 @@ export const GET = async (request: NextRequest) => {
     });
 
     if (!issues) {
-        return NextResponse.error('no issues found');
+        return NextResponse.json({ success: false, error: 'No issues found' }, { status: 404 });
     }
     // Initialize an object to store the counts
     const countsByDate = {};

@@ -1,96 +1,109 @@
-"use client";
+'use client';
 
-import {
-    Table,
-    TableBody,
-    TableCell,
-    TableHead,
-    TableHeader,
-    TableRow,
-} from "@/components/ui/table";
-import { useQuery } from "@tanstack/react-query";
-import axios from "axios";
-import { Badge } from "@/components/ui/badge";
-import { cn } from "@/lib/utils"; // Utility function for Tailwind class merging
+import React from 'react';
+import axios from 'axios';
+import { useQuery } from '@tanstack/react-query';
+import { formatDistanceToNow } from 'date-fns';
+import Image from 'next/image';
 
-export default function IssueTable() {
-    const fetchIssues = async () => {
-        const res = await axios.get("api/dashboard/issues");
-        return res.data; // Ensure this matches your API response
-    };
+// Type definitions
+interface AssignedUser {
+    id: string;
+    name: string;
+    email: string;
+    image: string | null;
+    assignedCount: number;
+    lastActivity: string | null;
+}
 
-    const { data, isPending, error } = useQuery({
-        queryKey: ["dashboard/issues"],
-        queryFn: fetchIssues,
+const fetchAssignedUsers = async () => {
+    const res = await axios.get('/api/dashboard/assigned');
+    return res.data.data || [];
+};
+
+const AssignedUsers = () => {
+    const { data: users, isPending, error } = useQuery({
+        queryKey: ['/api/dashboard/assigned'],
+        queryFn: fetchAssignedUsers,
     });
 
-    const issues = data?.data || []; // Ensure issues is always an array
-
     if (isPending) {
-        return <div className="text-center py-6 text-gray-600 dark:text-gray-300">⏳ Loading issues...</div>;
+        return (
+            <div className="w-full rounded-lg bg-white dark:bg-gray-800 shadow p-4">
+                <h3 className="text-lg font-semibold mb-4">Assigned Team Members</h3>
+                <div className="flex justify-center items-center h-40">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 dark:border-white"></div>
+                </div>
+            </div>
+        );
     }
 
     if (error) {
-        return <div className="text-center py-6 text-red-500">❌ Failed to load issues</div>;
+        return (
+            <div className="w-full rounded-lg bg-white dark:bg-gray-800 shadow p-4">
+                <h3 className="text-lg font-semibold mb-4">Assigned Team Members</h3>
+                <div className="text-center py-4 text-red-500">
+                    Failed to load assigned users. Please try again later.
+                </div>
+            </div>
+        );
+    }
+
+    if (!users || users.length === 0) {
+        return (
+            <div className="w-full rounded-lg bg-white dark:bg-gray-800 shadow p-4">
+                <h3 className="text-lg font-semibold mb-4">Assigned Team Members</h3>
+                <div className="text-center py-4 text-gray-500 dark:text-gray-400">
+                    No team members with assigned issues found.
+                </div>
+            </div>
+        );
     }
 
     return (
-        <div className="p-6 rounded-xl shadow-lg bg-white dark:bg-gray-900 text-gray-900 dark:text-white transition-colors duration-300">
-            <h2 className="text-xl font-semibold mb-4 text-center">🔥 Recent Issues 🔥</h2>
-            <Table className="w-full border border-gray-200 dark:border-gray-700">
-                <TableHeader>
-                    <TableRow className="bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-white">
-                        <TableHead className="w-[80px] text-center">ID</TableHead>
-                        <TableHead>Title</TableHead>
-                        <TableHead className="text-center">Status</TableHead>
-                        <TableHead className="text-center">Deadline</TableHead>
-                        <TableHead>Assigned To</TableHead>
-                    </TableRow>
-                </TableHeader>
-                <TableBody>
-                    {issues.length > 0 ? (
-                        issues.map((issue: any, index: number) => (
-                            <TableRow
-                                key={issue.id}
-                                className={cn(
-                                    "border-b border-gray-200 dark:border-gray-700 transition duration-300",
-                                    index % 2 === 0 ? "bg-gray-50 dark:bg-gray-800" : "bg-gray-100 dark:bg-gray-900",
-                                    "hover:bg-gray-200 dark:hover:bg-gray-700 hover:scale-[1.02] cursor-pointer"
-                                )}
-                            >
-                                <TableCell className="text-center font-semibold text-blue-600 dark:text-blue-400">
-                                    {issue.id}
-                                </TableCell>
-                                <TableCell className="font-medium">{issue.title}</TableCell>
-                                <TableCell className="text-center">
-                                    <Badge
-                                        className={cn(
-                                            "px-2 py-1 rounded-md text-xs font-semibold",
-                                            issue.status === "OPEN"
-                                                ? "bg-green-100 text-green-700 dark:bg-green-500 dark:text-black"
-                                                : "bg-red-100 text-red-700 dark:bg-red-500 dark:text-white"
-                                        )}
-                                    >
-                                        {issue.status}
-                                    </Badge>
-                                </TableCell>
-                                <TableCell className="text-center">
-                                    {new Date(issue.deadlineDate).toLocaleDateString()}
-                                </TableCell>
-                                <TableCell className="font-semibold">
-                                    {issue.assignedToUser?.name || "Unassigned"}
-                                </TableCell>
-                            </TableRow>
-                        ))
-                    ) : (
-                        <TableRow>
-                            <TableCell colSpan={5} className="text-center text-gray-500 dark:text-gray-400 py-4">
-                                🚀 No issues found
-                            </TableCell>
-                        </TableRow>
-                    )}
-                </TableBody>
-            </Table>
+        <div className="w-full rounded-lg bg-white dark:bg-gray-800 shadow p-4">
+            <h3 className="text-lg font-semibold mb-4">Assigned Team Members</h3>
+            <div className="space-y-4">
+                {users.map((user: AssignedUser) => (
+                    <div key={user.id} className="flex items-center border-b border-gray-200 dark:border-gray-700 pb-4 last:border-0">
+                        <div className="flex-shrink-0">
+                            {user.image ? (
+                                <Image
+                                    src={user.image}
+                                    alt={user.name}
+                                    width={40}
+                                    height={40}
+                                    className="rounded-full"
+                                />
+                            ) : (
+                                <div className="w-10 h-10 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center">
+                                    <span className="text-gray-500 dark:text-gray-400 text-lg font-medium">
+                                        {user.name.charAt(0).toUpperCase()}
+                                    </span>
+                                </div>
+                            )}
+                        </div>
+
+                        <div className="ml-4 flex-grow">
+                            <div className="font-medium text-gray-900 dark:text-white">{user.name}</div>
+                            <div className="text-sm text-gray-500 dark:text-gray-400">{user.email}</div>
+                        </div>
+
+                        <div className="text-right">
+                            <div className="text-sm font-medium text-gray-900 dark:text-white">
+                                {user.assignedCount} {user.assignedCount === 1 ? 'issue' : 'issues'}
+                            </div>
+                            {user.lastActivity && (
+                                <div className="text-xs text-gray-500 dark:text-gray-400">
+                                    Last activity: {formatDistanceToNow(new Date(user.lastActivity))} ago
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                ))}
+            </div>
         </div>
     );
-}
+};
+
+export default AssignedUsers;
