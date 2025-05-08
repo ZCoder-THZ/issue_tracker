@@ -41,7 +41,7 @@ const IssueChart = () => {
 
   return (
     <div className="p-6 w-3/4 mx-auto dark:bg-gray-700 min-h-screen">
-      <h2 className="text-2xl font-bold mb-6">Dashboard</h2>
+      <h2 className="text-2xl font-bold mb-6">AFCKINDashboard</h2>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {/* Bar Chart */}
         <div className="dark:bg-black bg-white p-4 rounded-2xl shadow-lg">

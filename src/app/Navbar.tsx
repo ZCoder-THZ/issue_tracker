@@ -1,10 +1,10 @@
 'use client';
 import React, { useEffect } from 'react';
 import Link from 'next/link';
-import { CircleUser, Menu, Package2, Bell, Check } from 'lucide-react';
-import { usePathname } from 'next/navigation';
+import { CircleUser, Menu, Package2, Bell } from 'lucide-react';
+import { usePathname, useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
-import { useSession } from 'next-auth/react';
+import { useSession, signOut } from 'next-auth/react';
 import classnames from 'classnames';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import Skeleton from 'react-loading-skeleton';
@@ -22,28 +22,39 @@ import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { Badge } from '@/components/ui/badge';
 import useNotification from '@/hooks/useNotification';
 import { useNotificationStore } from '@/stores/notificationStore';
+
 const links = [
   { name: 'Dashboard', href: '/' },
   { name: 'Issues', href: '/issues' },
   { name: 'Devs', href: '/devs' },
   { name: 'Notifications', href: '/notifications' },
-
 ];
 
 export default function Navbar() {
   const { status, data: session } = useSession();
   const currentPath = usePathname();
   const { socket } = useSocketStore();
-  const { notifications } = useNotificationStore()
+  const { notifications } = useNotificationStore();
+  const router = useRouter();
   const {
-    // notifications,
-    // getNotifications,
     markAsRead,
     markAllAsRead,
     unreadCount
   } = useNotification();
 
+  // Import the clearAll function from notification store
+  const { clearAll } = useNotificationStore();
 
+  // Custom logout handler that clears notifications before signing out
+  const handleLogout = async (e: React.MouseEvent<HTMLButtonElement>) => {
+    e.preventDefault();
+    // Clear all notifications
+    clearAll();
+    // Sign out using NextAuth
+    await signOut({ redirect: false });
+    // Redirect to home page
+    router.push('/');
+  };
 
   return (
     <div className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -231,9 +242,9 @@ export default function Navbar() {
                 <DropdownMenuItem>Support</DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem asChild>
-                  <Link href="/api/auth/signout" className="w-full">
+                  <button onClick={handleLogout} className="w-full text-left">
                     Logout
-                  </Link>
+                  </button>
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
