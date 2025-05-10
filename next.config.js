@@ -2,7 +2,7 @@
 const nextConfig = {
   output: 'standalone',
   webpack(config) {
-    // Add any custom Webpack configuration here if necessary
+
     return config;
   },
   typescript: {
@@ -10,10 +10,7 @@ const nextConfig = {
   },
   images: {
 
-    // domains: [
-    //   'via.placeholder.com',
-    //   'lh3.googleusercontent.com',
-    // ],
+
     remotePatterns: [
       {
         protocol: "https",

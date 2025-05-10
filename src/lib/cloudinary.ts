@@ -8,7 +8,13 @@ cloudinary.config({
 });
 
 export default cloudinary;
-
+function extractPublicIdFromUrl(imageUrl: string): string {
+    const match = imageUrl.match(/\/upload\/(?:v\d+\/)?([^/.]+)(?:\.[^/.]+)*$/);
+    if (!match || !match[1]) {
+        throw new Error(`Invalid Cloudinary image URL: ${imageUrl}`);
+    }
+    return match[1];
+}
 export const uploadTOCloudinary = async (file: File) => {
     const webpBuffer = await convertToWebP(file);
     const cloudinaryResult = await new Promise<any>((resolve, reject) => {
@@ -25,4 +31,11 @@ export const uploadTOCloudinary = async (file: File) => {
         ).end(webpBuffer);
     });
     return cloudinaryResult?.secure_url || '';
+};
+
+export const deleteFromCloudinary = async (imageUrl: string) => {
+    const publicId = extractPublicIdFromUrl(imageUrl);
+    console.log(publicId);
+    // @ts-ignore
+    return await cloudinary.uploader.destroy(publicId + '.webp');
 };

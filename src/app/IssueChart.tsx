@@ -4,6 +4,7 @@ import axios from 'axios';
 import IssueTable from './DashboardComponent/issueTable';
 import { IssuePie } from './DashboardComponent/PieChart';
 import { useQuery } from '@tanstack/react-query';
+import { useSession } from 'next-auth/react';
 import {
   BarChart,
   Bar,
@@ -33,7 +34,7 @@ const fetchDashboardData = async (): Promise<DashboardData> => {
 const IssueChart = () => {
   // State to track window size for dynamic chart height
   const [chartHeight, setChartHeight] = useState(350);
-
+  const { data: session } = useSession();
   // Adjust chart height based on screen width
   useEffect(() => {
     const handleResize = () => {
@@ -179,7 +180,9 @@ const IssueChart = () => {
           Recent Issues
         </h3>
         <div className="overflow-x-auto">
-          <IssueTable />
+          {
+            session && <IssueTable />
+          }
         </div>
       </div>
     </div>

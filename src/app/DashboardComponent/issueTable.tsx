@@ -6,7 +6,7 @@ import { useQuery } from '@tanstack/react-query';
 import { formatDistanceToNow } from 'date-fns';
 import Image from 'next/image';
 
-// Type definitions
+
 interface AssignedUser {
     id: string;
     name: string;

@@ -23,7 +23,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    image: app-image
+    # image: app-image
     container_name: app_container
     depends_on:
       postgres_container:

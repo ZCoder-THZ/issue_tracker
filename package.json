@@ -86,6 +86,7 @@
   "devDependencies": {
     "@types/bcrypt": "^5.0.2",
     "@types/bcryptjs": "^3.0.0",
+    "@types/fslightbox-react": "^1.8.0",
     "@types/node": "20.12.12",
     "@types/uuid": "^10.0.0",
     "bcryptjs": "^2.4.3",

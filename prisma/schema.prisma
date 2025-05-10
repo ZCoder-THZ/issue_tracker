@@ -93,6 +93,7 @@ model IssueImage {
   id       Int    @id @default(autoincrement())
   issueId  Int
   imageUrl String
+  storageType     StorageType?     @default(value: CLOUDINARY)
   issue    Issue  @relation(fields: [issueId], references: [id], onDelete: Cascade)
 
   @@index([issueId])
@@ -147,4 +148,9 @@ enum IssuePriority {
   medium
   low
   lowest
+}
+enum StorageType {
+  CLOUDINARY
+  S3
+  LOCAL
 }

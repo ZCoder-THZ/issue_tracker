@@ -4,12 +4,8 @@ import { patchIssueSchema } from '@/app/validationSchemas';
 import { v2 as cloudinary } from 'cloudinary';
 import sharp from 'sharp';
 import { Buffer } from 'buffer';
+import { deleteFromCloudinary } from '@/lib/cloudinary';
 
-cloudinary.config({
-  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
-  api_key: process.env.CLOUDINARY_API_KEY,
-  api_secret: process.env.CLOUDINARY_API_SECRET,
-});
 
 export async function PATCH(request: NextRequest, props: { params: Promise<{ id: number }> }) {
   const params = await props.params;
@@ -104,8 +100,11 @@ export async function PATCH(request: NextRequest, props: { params: Promise<{ id:
       data: {
         title,
         description,
+        // @ts-ignore
         priority,
         assignedToUserId: assignedUserId,
+        // @ts-ignore
+
         status,
         assignedDate, // Updated date
         deadlineDate: deadlineDateISO, // Updated date
@@ -126,10 +125,61 @@ export async function PATCH(request: NextRequest, props: { params: Promise<{ id:
 
 export async function DELETE(request: NextRequest, props: { params: Promise<{ id: number }> }) {
   const params = await props.params;
+
   try {
     const issueId = Number(params.id);
+    // Find the issue with its images
+    const findIssue = await prisma.issue.findUnique({
+      where: { id: issueId },
+      include: {
+        issueImages: {
+          select: {
+            id: true,
+            imageUrl: true,
+            storageType: true,
+          },
+        }
+      }
+    });
+
+    if (!findIssue) {
+      return NextResponse.json({ error: 'Issue not found' }, { status: 404 });
+    }
+
+    // Delete images from Cloudinary first
+    const deletionResults = [];
+    if (findIssue?.issueImages?.length) {
+      for (const image of findIssue.issueImages) {
+        if (image.storageType === 'CLOUDINARY' && image.imageUrl) {
+          try {
+            const result = await deleteFromCloudinary(image.imageUrl);
+            deletionResults.push({
+              imageUrl: image.imageUrl,
+              success: true,
+              result
+            });
+            console.log(`Successfully deleted image: ${image.imageUrl}`);
+          } catch (error) {
+            console.error(`Error deleting image from Cloudinary: ${image.imageUrl}`, error);
+            deletionResults.push({
+              imageUrl: image.imageUrl,
+              success: false,
+              error: (error as Error).message
+            });
+          }
+        }
+      }
+    }
+
+
     const deletedIssue = await prisma.issue.delete({ where: { id: issueId } });
-    return NextResponse.json({ message: 'Issue deleted successfully', issue: deletedIssue });
+
+    return NextResponse.json({
+      message: 'Issue deleted successfully',
+      issue: deletedIssue,
+      imageResults: deletionResults
+    });
+
   } catch (error) {
     console.error('Error deleting issue:', error);
     return NextResponse.json({ error: 'Failed to delete issue' }, { status: 500 });

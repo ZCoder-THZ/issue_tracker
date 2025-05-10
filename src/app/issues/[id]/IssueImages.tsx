@@ -7,12 +7,11 @@ import { useRouter } from 'next/navigation';
 interface IssueImagesProps {
     issueImages: { id: number; imageUrl: string }[];
 }
-
 function IssueImages({ issueImages }: IssueImagesProps) {
     const router = useRouter()
     useEffect(() => {
         router.refresh()
-    }, []);
+    }, [router]);
     const [lightboxController, setLightboxController] = useState({
         toggler: false,
         slide: 1,
