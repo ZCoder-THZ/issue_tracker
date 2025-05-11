@@ -28,6 +28,8 @@ const links = [
   { name: 'Issues', href: '/issues' },
   { name: 'Devs', href: '/devs' },
   { name: 'Notifications', href: '/notifications' },
+  { name: 'Chat', href: '/chat' },
+
 ];
 
 export default function Navbar() {
