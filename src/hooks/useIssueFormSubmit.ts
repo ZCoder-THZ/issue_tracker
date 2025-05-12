@@ -5,7 +5,7 @@ import axios from "axios";
 import { toast } from "react-toastify";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
-import { useSocketStore } from "@/stores/socketStore";
+import { useSocketStore } from "@/stores/socketIo/socketStore";
 
 export const useIssueFormSubmit = (issue: any | undefined) => {
     const router = useRouter();

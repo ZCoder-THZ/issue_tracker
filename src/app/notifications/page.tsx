@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
-import { useSocketStore } from "@/stores/socketStore";
+import { useSocketStore } from "@/stores/socketIo/socketStore";
 import { useSession } from "next-auth/react";
 import useNotification from "@/hooks/useNotification";
 import Link from "next/link";
@@ -11,7 +11,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { cn } from "@/lib/utils";
-import { useNotificationStore } from "@/stores/notificationStore";
+import { useNotificationStore } from "@/stores/socketIo/notificationStore";
 function NotificationPage() {
     const { notifications } = useNotificationStore();
     const {

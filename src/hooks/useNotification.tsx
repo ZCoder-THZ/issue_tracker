@@ -1,12 +1,12 @@
-"use client"
 
+'use client'
 import { useEffect } from 'react';
 import { useSession } from 'next-auth/react';
 import { toast } from "react-toastify";
 
 import { Notification } from '@/types/notifications';
-import { useSocketStore } from '@/stores/socketStore';
-import { useNotificationStore } from '@/stores/notificationStore';
+import { useSocketStore } from '@/stores/socketIo/socketStore';
+import { useNotificationStore } from '@/stores/socketIo/notificationStore';
 
 function useNotification() {
     const socket = useSocketStore((state) => state.socket);

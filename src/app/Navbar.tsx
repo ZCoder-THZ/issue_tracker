@@ -9,7 +9,7 @@ import classnames from 'classnames';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import Skeleton from 'react-loading-skeleton';
 import DarkMode from '@/components/DarkMode';
-import { useSocketStore } from '@/stores/socketStore';
+import { useSocketStore } from '@/stores/socketIo/socketStore';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -21,7 +21,7 @@ import {
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { Badge } from '@/components/ui/badge';
 import useNotification from '@/hooks/useNotification';
-import { useNotificationStore } from '@/stores/notificationStore';
+import { useNotificationStore } from '@/stores/socketIo/notificationStore';
 
 const links = [
   { name: 'Dashboard', href: '/' },

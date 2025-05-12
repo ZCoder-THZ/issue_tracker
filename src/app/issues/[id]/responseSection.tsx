@@ -3,7 +3,7 @@ import React, { useState } from "react";
 import useResponses from "./useResponse";
 import ResponseItem from "./ResponseItem";
 import ResponseInput from "./ResponseInput";
-import { useSocketStore } from '@/stores/socketStore'
+import { useSocketStore } from '@/stores/socketIo/socketStore'
 
 const ResponseSection = ({ issueId, issueOwnerId }: { issueId: number, issueOwnerId: string }) => {
 
